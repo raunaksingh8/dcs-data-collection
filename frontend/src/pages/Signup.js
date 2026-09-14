@@ -3,8 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Signup.css";
 import Loader from "../components/Loader";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+import API_URL from "../config/api";
 
 export default function Signup({ onLogin }) {
     const navigate = useNavigate();

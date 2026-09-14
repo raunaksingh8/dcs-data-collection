@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Dashboard.css";
+import API_BASE_URL from "../config/api";
 
 export default function Dashboard({ user, onLogout }) {
     const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function Dashboard({ user, onLogout }) {
     const [formData, setFormData] = useState({
         committee_formation_date: "",
         total_active_members: "",
+        member: "",
+        non_member: "",
         achievement_15_days: "",
         achievement_monthly: "",
 
@@ -56,7 +59,7 @@ export default function Dashboard({ user, onLogout }) {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                "http://localhost:8000/api/form/submit",
+                `${API_BASE_URL}/api/form/submit`,
                 {
                     method: "POST",
                     headers: {
@@ -79,6 +82,8 @@ export default function Dashboard({ user, onLogout }) {
             setFormData({
                 committee_formation_date: "",
                 total_active_members: "",
+                member: "",
+                non_member: "",
                 achievement_15_days: "",
                 achievement_monthly: "",
 
@@ -115,20 +120,25 @@ export default function Dashboard({ user, onLogout }) {
             <header className="dashboard-header">
                 <div>
                     <div className="dashboard-brand">
-                        <div className="brand-logo">DCS</div>
+                        <img
+                            src={process.env.PUBLIC_URL + "/logoimage.png"}
+                            alt="COMFED Logo"
+                            className="brand-logo-img"
+                        />
 
-                        <div>
-                            <h1>COMFED</h1>
-                            <span>DCS Data Collection Portal</span>
+                        <div className="brand-text">
+                            <h1>{user?.dcs_name?.trim()}</h1>
+                            <span className="dcs-no-text">{user?.dcs_no}</span>
+                            <span className="portal-subtitle">DCS Data Collection Portal</span>
                         </div>
                     </div>
                 </div>
 
                 <div className="user-info">
-                    <div className="user-details">
+                    {/* <div className="user-details">
                         <strong>{user?.dcs_name?.trim()}</strong>
                         <span>{user?.dcs_no}</span>
-                    </div>
+                    </div> */}
 
                     <button
                         className="logout-button"
@@ -242,6 +252,24 @@ export default function Dashboard({ user, onLogout }) {
                                 name="total_active_members"
                                 type="number"
                                 value={formData.total_active_members}
+                                onChange={handleChange}
+                                placeholder="Enter number"
+                            />
+
+                            <FormInput
+                                label="Member"
+                                name="member"
+                                type="number"
+                                value={formData.member}
+                                onChange={handleChange}
+                                placeholder="Enter number"
+                            />
+
+                            <FormInput
+                                label="Non-Member"
+                                name="non_member"
+                                type="number"
+                                value={formData.non_member}
                                 onChange={handleChange}
                                 placeholder="Enter number"
                             />

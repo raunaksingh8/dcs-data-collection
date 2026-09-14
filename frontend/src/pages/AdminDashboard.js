@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/AdminDashboard.css";
 import { CiSearch } from "react-icons/ci";
-
-const API = "http://localhost:8000";
+import API from "../config/api";
 
 /** Format a date string to Indian locale (14 September 2026) */
 function formatDate(value) {
@@ -70,6 +69,8 @@ const TABLE_COLUMNS = [
     { key: "secretary_name", label: "Secretary Name", render: cell },
     { key: "committee_formation_date", label: "Committee Date", render: formatDate },
     { key: "total_active_members", label: "Active Members", render: formatNumber },
+    { key: "member", label: "Member", render: formatNumber },
+    { key: "non_member", label: "Non-Member", render: formatNumber },
     { key: "achievement_15_days", label: "15 Day Achv.", render: formatNumber },
     { key: "achievement_monthly", label: "Monthly Achv.", render: formatNumber },
     { key: "monthly_target", label: "Monthly Target", render: formatNumber },
@@ -315,7 +316,11 @@ export default function AdminDashboard({ user, onLogout }) {
             <header className="admin-header">
                 <div>
                     <div className="admin-brand">
-                        <div className="admin-brand-logo">Admin</div>
+                        <img
+                            src={process.env.PUBLIC_URL + "/logoimage.png"}
+                            alt="COMFED Logo"
+                            className="admin-brand-logo-img"
+                        />
 
                         <div>
                             <h1>COMFED</h1>

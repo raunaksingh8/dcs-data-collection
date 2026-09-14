@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Login.css";
+import API_BASE_URL from "../config/api";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 const Login = ({ onLogin }) => {
     const navigate = useNavigate();
@@ -9,6 +12,7 @@ const Login = ({ onLogin }) => {
     const [loginType, setLoginType] = useState("user");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleLogin = async (e) => {
@@ -24,8 +28,8 @@ const Login = ({ onLogin }) => {
         try {
             const endpoint =
                 loginType === "user"
-                    ? "http://localhost:8000/api/auth/user-login"
-                    : "http://localhost:8000/api/auth/admin-login";
+                    ? `${API_BASE_URL}/api/auth/user-login`
+                    : `${API_BASE_URL}/api/auth/admin-login`;
 
             const body =
                 loginType === "user"
@@ -85,8 +89,13 @@ const Login = ({ onLogin }) => {
     return (
         <div className="login-page">
 
-            <div className="login-background-shape shape-one"></div>
-            <div className="login-background-shape shape-two"></div>
+            <div
+                className="login-bg-image"
+                style={{
+                    backgroundImage: `url(${process.env.PUBLIC_URL + "/background.png"})`,
+                }}
+            />
+            <div className="login-bg-overlay" />
 
             <div className="login-container">
 
@@ -177,7 +186,7 @@ const Login = ({ onLogin }) => {
                             <div className="input-wrapper">
 
                                 <span className="input-icon">
-                                    ☎
+                                    <FontAwesomeIcon icon={faUser} />
                                 </span>
 
                                 <input
@@ -210,12 +219,17 @@ const Login = ({ onLogin }) => {
 
                             <div className="input-wrapper">
 
-                                <span className="input-icon">
-                                    ●
+                                <span
+                                    className="input-icon"
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    title={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                                 </span>
 
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) =>
                                         setPassword(

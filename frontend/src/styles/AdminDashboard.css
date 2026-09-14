@@ -34,6 +34,13 @@
     gap: 12px;
 }
 
+.admin-brand-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .admin-brand-logo {
     width: 44px;
     height: 44px;

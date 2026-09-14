@@ -53,18 +53,41 @@
     box-sizing: border-box;
 }
 
+.brand-logo-img {
+    height: 44px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
 .dashboard-brand h1 {
     margin: 0;
-    font-size: 17px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #172033;
+}
+
+.dashboard-brand .dcs-no-text {
+    display: block;
+    margin-top: 1px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
     line-height: 1.2;
 }
 
-.dashboard-brand span {
+.dashboard-brand .portal-subtitle {
     display: block;
-    margin-top: 2px;
-
+    margin-top: 1px;
     font-size: 11px;
     color: #8a94a3;
+    line-height: 1.2;
 }
 
 .user-info {
@@ -492,7 +515,7 @@
         padding: 12px 15px;
     }
 
-    .dashboard-brand span {
+    .dashboard-brand .portal-subtitle {
         display: none;
     }
 

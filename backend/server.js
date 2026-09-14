@@ -32,12 +32,25 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log("FRONTEND_URL =", process.env.FRONTEND_URL);
+const allowedOrigins = [
+  "https://comfed-dcs.vercel.app",
+  "http://localhost:3000",
+];
 
-// CORS: only allow your real frontend + local dev, not "*"
+if (process.env.FRONTEND_URL) {
+  const envOrigin = process.env.FRONTEND_URL.replace(/\/+$/, "");
+  if (!allowedOrigins.includes(envOrigin)) {
+    allowedOrigins.push(envOrigin);
+  }
+}
+
+console.log("Allowed CORS Origins =", allowedOrigins);
+
+// CORS: allow production frontend + local dev
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:3000"],
+    origin: allowedOrigins,
+    credentials: true,
   })
 );
 
@@ -50,9 +63,8 @@ app.get("/", (req, res) => {
 
 require("./api/health")(app);
 require("./api/auth")(app);
-// require("./api/items")(app);
-// require("./api/shops")(app);
-// require("./api/prices")(app);
+require("./api/form")(app);
+require("./api/admin")(app);
 
 // Central error handler
 app.use((err, req, res, next) => {
