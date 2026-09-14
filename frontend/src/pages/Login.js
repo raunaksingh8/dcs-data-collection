@@ -95,9 +95,11 @@ const Login = ({ onLogin }) => {
                     {/* Header */}
                     <div className="login-header">
 
-                        <div className="comfed-logo">
-                            C
-                        </div>
+                        <img
+                            src={process.env.PUBLIC_URL + "/logoimage.png"}
+                            alt="COMFED Logo"
+                            className="comfed-logo"
+                        />
 
                         <h1>COMFED LOGIN</h1>
 
@@ -149,8 +151,8 @@ const Login = ({ onLogin }) => {
 
                         <div
                             className={`switch-slider ${loginType === "admin"
-                                    ? "slide-right"
-                                    : ""
+                                ? "slide-right"
+                                : ""
                                 }`}
                         ></div>
 
