@@ -107,15 +107,15 @@ const FROM_JOINS = `
   LEFT JOIN public.union_master u ON d.union_id = u.union_id
 `;
 
-/** Excel-friendly column headers (same order as SELECT_COLUMNS) */
+/** Excel-friendly column headers (matching UI TABLE_COLUMNS) */
 const COLUMN_HEADERS = [
-  "Submission ID",
+  // "Submission ID",
   "Submission Date",
   "Union Name",
   "DCS Name",
   "DCS No",
   "DCS Code",
-  "DCS ID",
+  // "DCS ID",
   "Secretary Name",
   "Committee Formation Date",
   "Total Active Members",
@@ -141,15 +141,15 @@ const COLUMN_HEADERS = [
   "Submitted At",
 ];
 
-/** Column keys matching the SELECT alias order */
+/** Column keys matching the SELECT alias order and UI TABLE_COLUMNS */
 const COLUMN_KEYS = [
-  "submission_id",
+  // "submission_id",
   "submission_date",
   "union_name",
   "dcs_name",
   "dcs_no",
   "dcs_code",
-  "dcs_id",
+  // "dcs_id",
   "secretary_name",
   "committee_formation_date",
   "total_active_members",
@@ -357,7 +357,7 @@ module.exports = (app) => {
         const values = {};
         COLUMN_KEYS.forEach((key) => {
           let v = row[key];
-          if (key === "submission_date" || key === "committee_formation_date") {
+          if (key === "submission_date" || key === "committee_formation_date" || key === "audit_status") {
             v = formatDateIST(v);
           } else if (key === "submitted_at") {
             v = formatDateTimeIST(v);
@@ -386,150 +386,150 @@ module.exports = (app) => {
   // ──────────────────────────────────────────
   // GET /api/admin/submissions/export/pdf
   // ──────────────────────────────────────────
-  app.get("/api/admin/submissions/export/pdf", authMiddleware, async (req, res) => {
-    if (!adminOnly(req, res)) return;
+  // app.get("/api/admin/submissions/export/pdf", authMiddleware, async (req, res) => {
+  //   if (!adminOnly(req, res)) return;
 
-    try {
-      const { where, params, idx } = buildSubmissionFilters(req.query);
+  //   try {
+  //     const { where, params, idx } = buildSubmissionFilters(req.query);
 
-      const sql = `
-        SELECT ${SELECT_COLUMNS}
-        ${FROM_JOINS}
-        ${where}
-        ORDER BY fs.submission_date DESC, fs.submitted_at DESC
-        LIMIT ${EXPORT_ROW_LIMIT}
-      `;
+  //     const sql = `
+  //       SELECT ${SELECT_COLUMNS}
+  //       ${FROM_JOINS}
+  //       ${where}
+  //       ORDER BY fs.submission_date DESC, fs.submitted_at DESC
+  //       LIMIT ${EXPORT_ROW_LIMIT}
+  //     `;
 
-      const result = await pool.query(sql, params);
+  //     const result = await pool.query(sql, params);
 
-      const filename = `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.pdf`;
+  //     const filename = `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.pdf`;
 
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  //     res.setHeader("Content-Type", "application/pdf");
+  //     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
 
-      // Use a subset of columns for the PDF to keep it readable
-      const pdfColumns = [
-        "submission_id",
-        "submission_date",
-        "union_name",
-        "dcs_name",
-        "dcs_no",
-        "secretary_name",
-        "total_active_members",
-        "member",
-        "non_member",
-        "monthly_target",
-        "total_achievement",
-        "audit_status",
-      ];
+  //     // Use a subset of columns for the PDF to keep it readable
+  //     const pdfColumns = [
+  //       "submission_id",
+  //       "submission_date",
+  //       "union_name",
+  //       "dcs_name",
+  //       "dcs_no",
+  //       "secretary_name",
+  //       "total_active_members",
+  //       "member",
+  //       "non_member",
+  //       "monthly_target",
+  //       "total_achievement",
+  //       "audit_status",
+  //     ];
 
-      const pdfHeaders = [
-        "ID",
-        "Date",
-        "Union",
-        "DCS Name",
-        "DCS No",
-        "Secretary",
-        "Active Members",
-        "Member",
-        "Non-Member",
-        "Target",
-        "Achievement",
-        "Audit",
-      ];
+  //     const pdfHeaders = [
+  //       "ID",
+  //       "Date",
+  //       "Union",
+  //       "DCS Name",
+  //       "DCS No",
+  //       "Secretary",
+  //       "Active Members",
+  //       "Member",
+  //       "Non-Member",
+  //       "Target",
+  //       "Achievement",
+  //       "Audit",
+  //     ];
 
-      const doc = new PDFDocument({
-        layout: "landscape",
-        size: "A3",
-        margin: 30,
-        bufferPages: true,
-      });
+  //     const doc = new PDFDocument({
+  //       layout: "landscape",
+  //       size: "A3",
+  //       margin: 30,
+  //       bufferPages: true,
+  //     });
 
-      doc.pipe(res);
+  //     doc.pipe(res);
 
-      // Title
-      doc.fontSize(16).font("Helvetica-Bold").text("COMFED - DCS Submissions Report", { align: "center" });
-      doc.fontSize(9).font("Helvetica").text(
-        `Generated: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}  |  Total rows: ${result.rows.length}`,
-        { align: "center" }
-      );
-      doc.moveDown(1);
+  //     // Title
+  //     doc.fontSize(16).font("Helvetica-Bold").text("COMFED - DCS Submissions Report", { align: "center" });
+  //     doc.fontSize(9).font("Helvetica").text(
+  //       `Generated: ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })}  |  Total rows: ${result.rows.length}`,
+  //       { align: "center" }
+  //     );
+  //     doc.moveDown(1);
 
-      // Table
-      const startX = 30;
-      let y = doc.y;
-      const colWidths = [50, 80, 130, 140, 85, 110, 75, 55, 65, 70, 80, 65];
-      const rowHeight = 18;
-      const headerHeight = 22;
-      const pageHeight = doc.page.height - 60;
+  //     // Table
+  //     const startX = 30;
+  //     let y = doc.y;
+  //     const colWidths = [50, 80, 130, 140, 85, 110, 75, 55, 65, 70, 80, 65];
+  //     const rowHeight = 18;
+  //     const headerHeight = 22;
+  //     const pageHeight = doc.page.height - 60;
 
-      // Draw header
-      function drawHeader() {
-        doc.fontSize(8).font("Helvetica-Bold");
-        let x = startX;
-        // Header background
-        doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), headerHeight)
-          .fill("#1d4ed8");
+  //     // Draw header
+  //     function drawHeader() {
+  //       doc.fontSize(8).font("Helvetica-Bold");
+  //       let x = startX;
+  //       // Header background
+  //       doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), headerHeight)
+  //         .fill("#1d4ed8");
 
-        x = startX;
-        pdfHeaders.forEach((h, i) => {
-          doc.fillColor("#ffffff").text(h, x + 4, y + 5, { width: colWidths[i] - 8, height: headerHeight });
-          x += colWidths[i];
-        });
+  //       x = startX;
+  //       pdfHeaders.forEach((h, i) => {
+  //         doc.fillColor("#ffffff").text(h, x + 4, y + 5, { width: colWidths[i] - 8, height: headerHeight });
+  //         x += colWidths[i];
+  //       });
 
-        doc.fillColor("#000000");
-        y += headerHeight;
-      }
+  //       doc.fillColor("#000000");
+  //       y += headerHeight;
+  //     }
 
-      drawHeader();
+  //     drawHeader();
 
-      // Rows
-      doc.font("Helvetica").fontSize(7);
+  //     // Rows
+  //     doc.font("Helvetica").fontSize(7);
 
-      for (let r = 0; r < result.rows.length; r++) {
-        if (y + rowHeight > pageHeight) {
-          doc.addPage({ layout: "landscape", size: "A3", margin: 30 });
-          y = 30;
-          drawHeader();
-        }
+  //     for (let r = 0; r < result.rows.length; r++) {
+  //       if (y + rowHeight > pageHeight) {
+  //         doc.addPage({ layout: "landscape", size: "A3", margin: 30 });
+  //         y = 30;
+  //         drawHeader();
+  //       }
 
-        const row = result.rows[r];
+  //       const row = result.rows[r];
 
-        // Alternating bg
-        if (r % 2 === 0) {
-          doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
-            .fill("#f5f7fa");
-          doc.fillColor("#000000");
-        }
+  //       // Alternating bg
+  //       if (r % 2 === 0) {
+  //         doc.rect(startX, y, colWidths.reduce((a, b) => a + b, 0), rowHeight)
+  //           .fill("#f5f7fa");
+  //         doc.fillColor("#000000");
+  //       }
 
-        let x = startX;
-        pdfColumns.forEach((key, i) => {
-          let v = row[key];
-          if (key === "submission_date" || key === "committee_formation_date") {
-            v = formatDateIST(v);
-          } else if (key === "submitted_at") {
-            v = formatDateTimeIST(v);
-          }
-          const display = cellValue(v);
-          doc.text(String(display), x + 4, y + 4, { width: colWidths[i] - 8, height: rowHeight, ellipsis: true });
-          x += colWidths[i];
-        });
+  //       let x = startX;
+  //       pdfColumns.forEach((key, i) => {
+  //         let v = row[key];
+  //         if (key === "submission_date" || key === "committee_formation_date" || key === "audit_status") {
+  //           v = formatDateIST(v);
+  //         } else if (key === "submitted_at") {
+  //           v = formatDateTimeIST(v);
+  //         }
+  //         const display = cellValue(v);
+  //         doc.text(String(display), x + 4, y + 4, { width: colWidths[i] - 8, height: rowHeight, ellipsis: true });
+  //         x += colWidths[i];
+  //       });
 
-        y += rowHeight;
-      }
+  //       y += rowHeight;
+  //     }
 
-      if (result.rows.length === 0) {
-        doc.fontSize(12).text("No submissions found.", { align: "center" });
-      }
+  //     if (result.rows.length === 0) {
+  //       doc.fontSize(12).text("No submissions found.", { align: "center" });
+  //     }
 
-      doc.end();
+  //     doc.end();
 
-    } catch (err) {
-      console.error("Admin PDF export error:", err);
-      if (!res.headersSent) {
-        return res.status(500).json({ message: "Export failed" });
-      }
-    }
-  });
+  //   } catch (err) {
+  //     console.error("Admin PDF export error:", err);
+  //     if (!res.headersSent) {
+  //       return res.status(500).json({ message: "Export failed" });
+  //     }
+  //   }
+  // });
 
 };

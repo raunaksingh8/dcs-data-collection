@@ -273,16 +273,16 @@ const Login = ({ onLogin }) => {
                     <div className="login-footer">
 
                         <span>
-                            COMFED
+                            BIHAR STATE MILK CO-OPERATIVE FEDERATION LIMITED
                         </span>
 
-                        <span className="footer-dot">
+                        {/* <span className="footer-dot">
                             •
                         </span>
 
                         <span>
-                            Secure Access Portal
-                        </span>
+                            
+                        </span> */}
 
                     </div>
 

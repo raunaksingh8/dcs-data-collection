@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Dashboard.css";
@@ -7,6 +7,8 @@ import API_BASE_URL from "../config/api";
 export default function Dashboard({ user, onLogout }) {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
 
     const [formData, setFormData] = useState({
         committee_formation_date: "",
@@ -50,8 +52,78 @@ export default function Dashboard({ user, onLogout }) {
         navigate("/", { replace: true });
     };
 
+    // Check today's submission status on page load/refresh
+    useEffect(() => {
+        let isMounted = true;
+
+        const checkTodayStatus = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) return;
+
+                const response = await fetch(
+                    `${API_BASE_URL}/api/form/today-status`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (isMounted && data.submitted) {
+                        setHasSubmittedToday(true);
+                    }
+                }
+            } catch (error) {
+                console.error("Error checking today's submission status:", error);
+            }
+        };
+
+        checkTodayStatus();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const requiredFields = [
+        { key: "committee_formation_date", label: "Committee Formation Date" },
+        { key: "total_active_members",     label: "Total Active Members" },
+        { key: "member",                   label: "Member" },
+        { key: "non_member",               label: "Non-Member" },
+        { key: "achievement_15_days",      label: "15 Days Achievement" },
+        { key: "achievement_monthly",      label: "Monthly Achievement" },
+        { key: "monthly_target",           label: "Monthly Target" },
+        { key: "current_month_target",     label: "Current Month Target" },
+        { key: "week_1_achievement",       label: "Week 1 Achievement" },
+        { key: "week_2_achievement",       label: "Week 2 Achievement" },
+        { key: "week_3_achievement",       label: "Week 3 Achievement" },
+        { key: "week_4_achievement",       label: "Week 4 Achievement" },
+        { key: "total_achievement",        label: "Total Achievement" },
+        { key: "milk_producing_members",   label: "Milk Producing Members" },
+        { key: "dat_activated_producers",  label: "Producers with Activated Accounts" },
+        { key: "dat_receiving_producers",  label: "Producers Receiving DAT" },
+        { key: "payment_1_to_10",          label: "Payment 1–10" },
+        { key: "payment_11_to_20",         label: "Payment 11–20" },
+        { key: "payment_21_to_31",         label: "Payment 21–31" },
+        { key: "meeting_members_present",  label: "Members Present in Meeting" },
+        { key: "audit_status",             label: "Audit Status" },
+    ];
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitted(true);
+
+        // JS validation — check all required fields
+        const missing = requiredFields.find(
+            ({ key }) => formData[key] === "" || formData[key] === null || formData[key] === undefined
+        );
+        if (missing) {
+            toast.error(`Please fill in: ${missing.label}`);
+            return;
+        }
 
         setLoading(true);
 
@@ -78,6 +150,8 @@ export default function Dashboard({ user, onLogout }) {
             }
 
             toast.success("Form submitted successfully!");
+            setSubmitted(false);
+            setHasSubmittedToday(true);
 
             setFormData({
                 committee_formation_date: "",
@@ -151,6 +225,29 @@ export default function Dashboard({ user, onLogout }) {
 
             {/* Main */}
             <main className="dashboard-main">
+
+                {/* Today's Submission Info Banner */}
+                {hasSubmittedToday && (
+                    <div className="today-submitted-banner">
+                        <div className="banner-icon">
+                            <svg viewBox="0 0 20 20" fill="#f59e0b" width="22" height="22">
+                                <path
+                                    fillRule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div className="banner-content">
+                            <h4 className="banner-title">
+                                You have submitted the form for today.
+                            </h4>
+                            <p className="banner-desc">
+                                You can still view and update the form if required. The submit button will work as usual.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <div className="form-heading">
                     <div>
@@ -245,6 +342,8 @@ export default function Dashboard({ user, onLogout }) {
                                 type="date"
                                 value={formData.committee_formation_date}
                                 onChange={handleChange}
+                                required
+                                showError={submitted && !formData.committee_formation_date}
                             />
 
                             <FormInput
@@ -254,6 +353,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.total_active_members}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.total_active_members === ""}
                             />
 
                             <FormInput
@@ -263,6 +364,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.member}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.member === ""}
                             />
 
                             <FormInput
@@ -272,6 +375,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.non_member}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.non_member === ""}
                             />
 
                             <FormInput
@@ -281,6 +386,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.achievement_15_days}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.achievement_15_days === ""}
                             />
 
                             <FormInput
@@ -290,6 +397,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.achievement_monthly}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.achievement_monthly === ""}
                             />
 
                         </div>
@@ -316,6 +425,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.monthly_target}
                                 onChange={handleChange}
                                 placeholder="Enter target"
+                                required
+                                showError={submitted && formData.monthly_target === ""}
                             />
 
                             <FormInput
@@ -326,6 +437,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.current_month_target}
                                 onChange={handleChange}
                                 placeholder="Enter target"
+                                required
+                                showError={submitted && formData.current_month_target === ""}
                             />
 
                             <FormInput
@@ -336,6 +449,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.week_1_achievement}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.week_1_achievement === ""}
                             />
 
                             <FormInput
@@ -346,6 +461,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.week_2_achievement}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.week_2_achievement === ""}
                             />
 
                             <FormInput
@@ -356,6 +473,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.week_3_achievement}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.week_3_achievement === ""}
                             />
 
                             <FormInput
@@ -366,6 +485,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.week_4_achievement}
                                 onChange={handleChange}
                                 placeholder="Enter achievement"
+                                required
+                                showError={submitted && formData.week_4_achievement === ""}
                             />
 
                             <FormInput
@@ -376,6 +497,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.total_achievement}
                                 onChange={handleChange}
                                 placeholder="Enter total"
+                                required
+                                showError={submitted && formData.total_achievement === ""}
                             />
 
                         </div>
@@ -401,6 +524,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.milk_producing_members}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.milk_producing_members === ""}
                             />
 
                             <FormInput
@@ -410,6 +535,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.dat_activated_producers}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.dat_activated_producers === ""}
                             />
 
                             <FormInput
@@ -419,6 +546,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.dat_receiving_producers}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.dat_receiving_producers === ""}
                             />
 
                             <FormInput
@@ -429,6 +558,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.payment_1_to_10}
                                 onChange={handleChange}
                                 placeholder="Enter amount"
+                                required
+                                showError={submitted && formData.payment_1_to_10 === ""}
                             />
 
                             <FormInput
@@ -439,6 +570,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.payment_11_to_20}
                                 onChange={handleChange}
                                 placeholder="Enter amount"
+                                required
+                                showError={submitted && formData.payment_11_to_20 === ""}
                             />
 
                             <FormInput
@@ -449,6 +582,8 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.payment_21_to_31}
                                 onChange={handleChange}
                                 placeholder="Enter amount"
+                                required
+                                showError={submitted && formData.payment_21_to_31 === ""}
                             />
 
                         </div>
@@ -474,33 +609,19 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.meeting_members_present}
                                 onChange={handleChange}
                                 placeholder="Enter number"
+                                required
+                                showError={submitted && formData.meeting_members_present === ""}
                             />
 
-                            <div className="input-group">
-                                <label>Audit Status</label>
-
-                                <select
-                                    name="audit_status"
-                                    value={formData.audit_status}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">
-                                        Select audit status
-                                    </option>
-
-                                    <option value="Completed">
-                                        Completed
-                                    </option>
-
-                                    <option value="Pending">
-                                        Pending
-                                    </option>
-
-                                    <option value="Not Applicable">
-                                        Not Applicable
-                                    </option>
-                                </select>
-                            </div>
+                            <FormInput
+                                label="Audit Status"
+                                name="audit_status"
+                                type="date"
+                                value={formData.audit_status}
+                                onChange={handleChange}
+                                required
+                                showError={submitted && !formData.audit_status}
+                            />
 
                         </div>
                     </section>
@@ -533,10 +654,15 @@ function FormInput({
     onChange,
     placeholder = "",
     step,
+    required = false,
+    showError = false,
 }) {
     return (
-        <div className="input-group">
-            <label>{label}</label>
+        <div className={`input-group${showError ? " input-error" : ""}`}>
+            <label>
+                {label}
+                {required && <span className="required-star"> *</span>}
+            </label>
 
             <input
                 name={name}
@@ -545,7 +671,12 @@ function FormInput({
                 onChange={onChange}
                 placeholder={placeholder}
                 step={step}
+                required={required}
             />
+
+            {showError && (
+                <span className="error-message">This field is required</span>
+            )}
         </div>
     );
 }

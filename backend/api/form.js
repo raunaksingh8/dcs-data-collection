@@ -161,7 +161,9 @@ module.exports = (app) => {
                         payment_21_to_31 || null,
 
                         meeting_members_present || null,
-                        audit_status || null,
+                        audit_status && typeof audit_status === "string" && audit_status.trim() !== ""
+                            ? audit_status.trim()
+                            : null,
                     ]
                 );
 

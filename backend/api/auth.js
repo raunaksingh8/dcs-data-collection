@@ -4,9 +4,8 @@ const { authlimiter } = require("../middleware/rateLimiters");
 
 module.exports = (app) => {
 
-  // ============================================
-  // DCS / USER LOGIN
-  // ============================================
+  //dcs login 
+
   app.post("/api/auth/user-login", authlimiter, async (req, res) => {
     console.time("user-login");
 
@@ -46,7 +45,6 @@ module.exports = (app) => {
         });
       }
 
-      // Common DCS password
       if (password !== "COMFED123") {
         console.timeEnd("user-login");
 
@@ -79,8 +77,6 @@ module.exports = (app) => {
 
         user: {
           role: "user",
-          dcs_id: dcs.dcs_id,
-          union_id: dcs.union_id,
           union_name: dcs.un_name,
           dcs_no: dcs.dcs_no,
           dcs_code: dcs.dcs_code,
@@ -101,9 +97,8 @@ module.exports = (app) => {
   });
 
 
-  // ============================================
-  // ADMIN LOGIN
-  // ============================================
+  // admin login 
+
   app.post("/api/auth/admin-login", authlimiter, async (req, res) => {
     console.time("admin-login");
 

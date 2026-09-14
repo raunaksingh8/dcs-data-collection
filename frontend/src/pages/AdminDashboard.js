@@ -53,19 +53,28 @@ function formatNumber(n) {
     return Number(n).toLocaleString("en-IN");
 }
 
+/** Format audit status: date if YYYY-MM-DD, otherwise string or dash */
+function formatAuditStatus(value) {
+    if (value === null || value === undefined || value === "") return "–";
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+        return formatDate(value);
+    }
+    return String(value);
+}
+
 
 // ────────────────────────────────────────────
 // COLUMN CONFIG
 // ────────────────────────────────────────────
 
 const TABLE_COLUMNS = [
-    { key: "submission_id", label: "ID", render: cell },
+    // { key: "submission_id", label: "ID", render: cell },
     { key: "submission_date", label: "Submission Date", render: formatDate },
     { key: "union_name", label: "Union Name", render: cell },
     { key: "dcs_name", label: "DCS Name", render: cell },
     { key: "dcs_no", label: "DCS No", render: cell },
     { key: "dcs_code", label: "DCS Code", render: cell },
-    { key: "dcs_id", label: "DCS ID", render: cell },
+    // { key: "dcs_id", label: "DCS ID", render: cell },
     { key: "secretary_name", label: "Secretary Name", render: cell },
     { key: "committee_formation_date", label: "Committee Date", render: formatDate },
     { key: "total_active_members", label: "Active Members", render: formatNumber },
@@ -87,9 +96,22 @@ const TABLE_COLUMNS = [
     { key: "payment_11_to_20", label: "Pay 11–20", render: formatNumber },
     { key: "payment_21_to_31", label: "Pay 21–31", render: formatNumber },
     { key: "meeting_members_present", label: "Meeting Present", render: formatNumber },
-    { key: "audit_status", label: "Audit Status", render: cell },
+    { key: "audit_status", label: "Audit Status", render: formatAuditStatus },
     { key: "submitted_at", label: "Submitted At", render: formatDateTime },
 ];
+
+/** Dedicated row component to keep React fiber tree shallow and prevent Fast Refresh stack overflow */
+const AdminTableRow = React.memo(function AdminTableRow({ row, columns }) {
+    return (
+        <tr>
+            {columns.map((col) => (
+                <td key={col.key}>
+                    {col.render ? col.render(row[col.key]) : row[col.key]}
+                </td>
+            ))}
+        </tr>
+    );
+});
 
 
 // ════════════════════════════════════════════
@@ -252,6 +274,63 @@ export default function AdminDashboard({ user, onLogout }) {
 
     // ── Export ──
     const handleExport = async (type) => {
+        if (type === "excel") {
+            if (!data || data.length === 0) {
+                toast.info("No data in table to export");
+                return;
+            }
+
+            setExporting("excel");
+
+            try {
+                // Dynamically import xlsx on demand
+                const XLSX = await import("xlsx");
+
+                // Export ONLY what is in the table on UI:
+                // 1. Only active columns defined in TABLE_COLUMNS
+                // 2. Only rows currently loaded and displayed in the table
+                // 3. Formatted exactly as shown on the UI
+                const exportRows = data.map((row) => {
+                    const rowObj = {};
+                    TABLE_COLUMNS.forEach((col) => {
+                        const formatted = col.render ? col.render(row[col.key]) : row[col.key];
+                        rowObj[col.label] = formatted === "–" ? "" : formatted;
+                    });
+                    return rowObj;
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(exportRows);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Submissions");
+
+                // Auto-fit column widths based on content
+                worksheet["!cols"] = TABLE_COLUMNS.map((col) => {
+                    const maxValLen = Math.max(
+                        col.label.length,
+                        ...data.map((r) => {
+                            const val = col.render ? col.render(r[col.key]) : r[col.key];
+                            return val && val !== "–" ? String(val).length : 0;
+                        })
+                    );
+                    return { wch: Math.min(Math.max(maxValLen + 2, 12), 40) };
+                });
+
+                XLSX.writeFile(
+                    workbook,
+                    `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.xlsx`
+                );
+
+                toast.success("Excel exported successfully!");
+            } catch (err) {
+                console.error("Excel export error:", err);
+                toast.error("Export failed. Please try again.");
+            } finally {
+                setExporting(null);
+            }
+            return;
+        }
+
+        // Fallback for other export types (e.g. PDF if re-enabled)
         setExporting(type);
 
         try {
@@ -277,15 +356,13 @@ export default function AdminDashboard({ user, onLogout }) {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = type === "excel"
-                ? `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.xlsx`
-                : `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.pdf`;
+            a.download = `COMFED_Submissions_${new Date().toISOString().slice(0, 10)}.pdf`;
             document.body.appendChild(a);
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
 
-            toast.success(`${type === "excel" ? "Excel" : "PDF"} exported successfully!`);
+            toast.success("PDF exported successfully!");
         } catch {
             toast.error("Export failed. Please try again.");
         } finally {
@@ -448,14 +525,14 @@ export default function AdminDashboard({ user, onLogout }) {
                             Excel
                         </button>
 
-                        <button
+                        {/* <button
                             className="admin-export-btn pdf-btn"
                             onClick={() => handleExport("pdf")}
                             disabled={exporting !== null}
                         >
                             {exporting === "pdf" ? "⏳" : "📕"}{" "}
                             PDF
-                        </button>
+                        </button> */}
                     </div>
                 </div>
 
@@ -507,13 +584,11 @@ export default function AdminDashboard({ user, onLogout }) {
 
                                     <tbody>
                                         {data.map((row, idx) => (
-                                            <tr key={row.submission_id || idx}>
-                                                {TABLE_COLUMNS.map((col) => (
-                                                    <td key={col.key}>
-                                                        {col.render(row[col.key])}
-                                                    </td>
-                                                ))}
-                                            </tr>
+                                            <AdminTableRow
+                                                key={row.submission_id || idx}
+                                                row={row}
+                                                columns={TABLE_COLUMNS}
+                                            />
                                         ))}
                                     </tbody>
                                 </table>
