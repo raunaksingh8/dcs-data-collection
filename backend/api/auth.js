@@ -45,7 +45,7 @@ module.exports = (app) => {
         });
       }
 
-      if (password !== "COMFED123") {
+      if (password !== "COMFED@1234") {
         console.timeEnd("user-login");
 
         return res.status(401).json({
