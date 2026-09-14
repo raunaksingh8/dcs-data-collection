@@ -1,118 +1,281 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import '../styles/Login.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Loader from "../components/Loader";
+import "../styles/Login.css";
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-
-export default function Login({ onLogin }) {
+const Login = ({ onLogin }) => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+
+    const [loginType, setLoginType] = useState("user");
+    const [phone, setPhone] = useState("");
+    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        setError('');
+
+        if (!phone || !password) {
+            toast.error("Please enter phone number and password");
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+            const endpoint =
+                loginType === "user"
+                    ? "http://localhost:8000/api/auth/user-login"
+                    : "http://localhost:8000/api/auth/admin-login";
+
+            const body =
+                loginType === "user"
+                    ? {
+                        dcs_phone_no: phone,
+                        password: password,
+                    }
+                    : {
+                        admin_phone_no: phone,
+                        password: password,
+                    };
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (!res.ok) {
-                toast(data.message || "Login failed. Please Try Again");
-                setLoading(false);
+            if (!response.ok) {
+                toast.error(data.message || "Login failed");
                 return;
             }
 
-            toast(data.message || "Login Successfull !");
+            // Save login information
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
 
-            onLogin({
-                token: data.token,
-                user: data.user,
-            });
+            // Update authentication state in App.js
+            if (onLogin) {
+                onLogin({
+                    token: data.token,
+                    user: data.user,
+                });
+            }
 
-            // Redirect to dashboard 
-            navigate("/dashboard", { replace: true });
-        } catch (err) {
-            console.error("Login error:", err);
-            toast("Oops ! Unable to connect to server");
+            toast.success(data.message || "Login successful");
+
+            // Redirect based on role
+            if (data.user.role === "admin") {
+                navigate("/admin-dashboard", { replace: true });
+            } else {
+                navigate("/dashboard", { replace: true });
+            }
+
+        } catch (error) {
+            console.error("Login error:", error);
+            toast.error("Unable to connect to server");
+        } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="auth-page">
+        <div className="login-page">
 
-            {loading && <Loader />}
-            {/* Floating colour blobs */}
-            <div className="blob blob--cyan" aria-hidden="true" />
-            <div className="blob blob--pink" aria-hidden="true" />
-            <div className="blob blob--purple" aria-hidden="true" />
+            <div className="login-background-shape shape-one"></div>
+            <div className="login-background-shape shape-two"></div>
 
-            {/* Logo */}
-            <Link to="/" className="auth-logo">
-                Price<span className="logo-highlight">Dekho</span>App
-            </Link>
+            <div className="login-container">
 
-            {/* Glass card */}
-            <div className="auth-card">
-                <h1>Welcome back</h1>
-                <p className="auth-subtext">
-                    Log in to compare prices and track your savings
-                </p>
+                <div className="login-card">
 
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    <div className="auth-field">
-                        <label htmlFor="login-email">Email</label>
-                        <input
-                            id="login-email"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            autoComplete="email"
-                        />
+                    {/* Header */}
+                    <div className="login-header">
+
+                        <div className="comfed-logo">
+                            C
+                        </div>
+
+                        <h1>COMFED LOGIN</h1>
+
+                        <p>
+                            {loginType === "user"
+                                ? "DCS Data Collection Portal"
+                                : "Administration Portal"}
+                        </p>
+
                     </div>
 
-                    <div className="auth-field">
-                        <label htmlFor="login-password">Password</label>
-                        <input
-                            id="login-password"
-                            type="password"
-                            placeholder="Enter your password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            autoComplete="current-password"
-                        />
+
+                    {/* User / Admin Switch */}
+                    <div className="login-switch">
+
+                        <button
+                            type="button"
+                            className={
+                                loginType === "user"
+                                    ? "active"
+                                    : ""
+                            }
+                            onClick={() => {
+                                setLoginType("user");
+                                setPhone("");
+                                setPassword("");
+                            }}
+                        >
+                            User
+                        </button>
+
+
+                        <button
+                            type="button"
+                            className={
+                                loginType === "admin"
+                                    ? "active"
+                                    : ""
+                            }
+                            onClick={() => {
+                                setLoginType("admin");
+                                setPhone("");
+                                setPassword("");
+                            }}
+                        >
+                            Admin
+                        </button>
+
+
+                        <div
+                            className={`switch-slider ${loginType === "admin"
+                                    ? "slide-right"
+                                    : ""
+                                }`}
+                        ></div>
+
                     </div>
 
-                    {error && <div className="auth-error">{error}</div>}
 
-                    <button
-                        type="submit"
-                        className="auth-submit"
-                        disabled={loading}
+                    {/* Login Form */}
+                    <form
+                        className="login-form"
+                        onSubmit={handleLogin}
                     >
-                        {loading ? 'Logging in…' : 'Login'}
-                    </button>
-                </form>
 
-                <p className="auth-switch">
-                    Don't have an account?{' '}
-                    <Link to="/signup">Sign up</Link>
-                </p>
+                        {/* Phone */}
+                        <div className="input-group">
+
+                            <label>
+                                {loginType === "user"
+                                    ? "DCS Phone Number"
+                                    : "Admin Phone Number"}
+                            </label>
+
+                            <div className="input-wrapper">
+
+                                <span className="input-icon">
+                                    ☎
+                                </span>
+
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) =>
+                                        setPhone(
+                                            e.target.value.replace(
+                                                /\D/g,
+                                                ""
+                                            )
+                                        )
+                                    }
+                                    placeholder="Enter phone number"
+                                    maxLength="10"
+                                    autoComplete="tel"
+                                />
+
+                            </div>
+
+                        </div>
+
+
+                        {/* Password */}
+                        <div className="input-group">
+
+                            <label>
+                                Password
+                            </label>
+
+                            <div className="input-wrapper">
+
+                                <span className="input-icon">
+                                    ●
+                                </span>
+
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter password"
+                                    autoComplete="current-password"
+                                />
+
+                            </div>
+
+                        </div>
+
+
+                        {/* Login Button */}
+                        <button
+                            type="submit"
+                            className="login-button"
+                            disabled={loading}
+                        >
+
+                            {loading ? (
+                                <span className="button-loading">
+
+                                    <span className="spinner"></span>
+
+                                    Signing in...
+
+                                </span>
+                            ) : (
+                                "Sign In"
+                            )}
+
+                        </button>
+
+                    </form>
+
+
+                    {/* Footer */}
+                    <div className="login-footer">
+
+                        <span>
+                            COMFED
+                        </span>
+
+                        <span className="footer-dot">
+                            •
+                        </span>
+
+                        <span>
+                            Secure Access Portal
+                        </span>
+
+                    </div>
+
+                </div>
+
             </div>
+
         </div>
     );
-}
+};
+
+export default Login;

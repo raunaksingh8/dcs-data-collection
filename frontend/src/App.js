@@ -1,23 +1,19 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-import LandingPage from "./pages/Landingpage";
 import Login from "./pages/Login";
-import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-import PublicRoute from "./components/PublicRoute";
 import Loader from "./components/Loader";
 
 function App() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Called after a successful login/signup API response.
-    // Expects { token, user } shape, matching your backend's response.
     const login = ({ token, user }) => {
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -30,10 +26,6 @@ function App() {
         setUser(null);
     };
 
-    // Runs once on app start. Checks localStorage, restores the user
-    // if a token exists, and sets loading to false once done. This is
-    // what prevents the "flash of dashboard" bug: nothing route-related
-    // renders until this finishes.
     useEffect(() => {
         const token = localStorage.getItem("token");
         const savedUser = localStorage.getItem("user");
@@ -50,8 +42,6 @@ function App() {
         setLoading(false);
     }, []);
 
-    // While we haven't finished checking localStorage yet, show the
-    // loader instead of any route.
     if (loading) {
         return <Loader />;
     }
@@ -59,41 +49,85 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
+
+                {/* COMFED LOGIN - LANDING PAGE */}
                 <Route
                     path="/"
                     element={
-                        <PublicRoute isAuthenticated={Boolean(user)}>
-                            <LandingPage />
-                        </PublicRoute>
+                        user ? (
+                            <Navigate
+                                to={
+                                    user.role === "admin"
+                                        ? "/admin-dashboard"
+                                        : "/dashboard"
+                                }
+                                replace
+                            />
+                        ) : (
+                            <Login onLogin={login} />
+                        )
                     }
                 />
 
+                {/* Keep /login working as well */}
                 <Route
                     path="/login"
                     element={
-                        <PublicRoute isAuthenticated={Boolean(user)}>
+                        user ? (
+                            <Navigate
+                                to={
+                                    user.role === "admin"
+                                        ? "/admin-dashboard"
+                                        : "/dashboard"
+                                }
+                                replace
+                            />
+                        ) : (
                             <Login onLogin={login} />
-                        </PublicRoute>
+                        )
                     }
                 />
 
+                {/* USER DASHBOARD */}
                 <Route
-                    path="/signup"
                     element={
-                        <PublicRoute isAuthenticated={Boolean(user)}>
-                            <Signup onLogin={login} />
-                        </PublicRoute>
+                        <ProtectedRoute
+                            isAuthenticated={Boolean(user)}
+                        />
                     }
-                />
-
-                <Route
-                    element={<ProtectedRoute isAuthenticated={Boolean(user)} />}
                 >
                     <Route
                         path="/dashboard"
-                        element={<Dashboard user={user} onLogout={logout} />}
+                        element={
+                            <Dashboard
+                                user={user}
+                                onLogout={logout}
+                            />
+                        }
                     />
                 </Route>
+
+                {/* ADMIN DASHBOARD */}
+                <Route
+                    path="/admin-dashboard"
+                    element={
+                        user?.role === "admin" ? (
+                            <AdminDashboard
+                                user={user}
+                                onLogout={logout}
+                            />
+                        ) : (
+                            <Navigate to="/" replace />
+                        )
+                    }
+                />
+
+                {/* Unknown URL */}
+                <Route
+                    path="*"
+                    element={<Navigate to="/" replace />}
+                />
+
             </Routes>
 
             <ToastContainer
