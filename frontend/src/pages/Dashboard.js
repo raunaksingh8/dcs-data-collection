@@ -1,41 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../styles/Dashboard.css";
 import API_BASE_URL from "../config/api";
+
+const INITIAL_FORM_DATA = {
+    committee_formation_date: "",
+    total_active_members: "",
+    member: "",
+    non_member: "",
+    achievement_15_days: "",
+    achievement_monthly: "",
+
+    monthly_target: "",
+    current_month_target: "",
+    week_1_achievement: "",
+    week_2_achievement: "",
+    week_3_achievement: "",
+    week_4_achievement: "",
+    total_achievement: "",
+
+    milk_producing_members: "",
+    dat_activated_producers: "",
+    dat_receiving_producers: "",
+    payment_1_to_10: "",
+    payment_11_to_20: "",
+    payment_21_to_31: "",
+
+    meeting_members_present: "",
+    audit_status: "",
+};
 
 export default function Dashboard({ user, onLogout }) {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [currentDate, setCurrentDate] = useState("");
 
-    const [formData, setFormData] = useState({
-        committee_formation_date: "",
-        total_active_members: "",
-        member: "",
-        non_member: "",
-        achievement_15_days: "",
-        achievement_monthly: "",
-
-        monthly_target: "",
-        current_month_target: "",
-        week_1_achievement: "",
-        week_2_achievement: "",
-        week_3_achievement: "",
-        week_4_achievement: "",
-        total_achievement: "",
-
-        milk_producing_members: "",
-        dat_activated_producers: "",
-        dat_receiving_producers: "",
-        payment_1_to_10: "",
-        payment_11_to_20: "",
-        payment_21_to_31: "",
-
-        meeting_members_present: "",
-        audit_status: "",
-    });
+    const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -52,41 +56,88 @@ export default function Dashboard({ user, onLogout }) {
         navigate("/", { replace: true });
     };
 
-    // Check today's submission status on page load/refresh
-    useEffect(() => {
-        let isMounted = true;
+    // Check today's submission status on page load/refresh & midnight rollover
+    const checkTodayStatus = useCallback(async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
 
-        const checkTodayStatus = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
-
-                const response = await fetch(
-                    `${API_BASE_URL}/api/form/today-status`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    if (isMounted && data.submitted) {
-                        setHasSubmittedToday(true);
-                    }
+            const response = await fetch(
+                `${API_BASE_URL}/api/form/today-status`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
-            } catch (error) {
-                console.error("Error checking today's submission status:", error);
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                const serverDate = data.date;
+                setCurrentDate(serverDate);
+
+                const storageKey = `comfed_preserved_form_${user?.dcs_no || "user"}`;
+
+                if (data.submitted) {
+                    setHasSubmittedToday(true);
+
+                    // Restore submitted values for today if preserved
+                    try {
+                        const saved = localStorage.getItem(storageKey);
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (parsed && parsed.date === serverDate && parsed.formData) {
+                                setFormData(parsed.formData);
+                            } else {
+                                // Previous day or date mismatch -> clear
+                                localStorage.removeItem(storageKey);
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error reading preserved form data:", err);
+                    }
+                } else {
+                    // Not submitted today (either new day or never submitted today):
+                    // Previous day's entered values must NEVER carry over to the new day
+                    setHasSubmittedToday((prevSubmitted) => {
+                        if (prevSubmitted) {
+                            // Midnight crossed into a new day
+                            setFormData(INITIAL_FORM_DATA);
+                            setSubmitted(false);
+                        }
+                        return false;
+                    });
+                    localStorage.removeItem(storageKey);
+                }
+            }
+        } catch (error) {
+            console.error("Error checking today's submission status:", error);
+        }
+    }, [user?.dcs_no]);
+
+    useEffect(() => {
+        checkTodayStatus();
+
+        // Periodic check every 60 seconds to detect midnight transition across IST calendar day
+        const interval = setInterval(() => {
+            checkTodayStatus();
+        }, 60000);
+
+        const handleFocusOrVisibility = () => {
+            if (document.visibilityState === "visible") {
+                checkTodayStatus();
             }
         };
 
-        checkTodayStatus();
+        window.addEventListener("focus", handleFocusOrVisibility);
+        document.addEventListener("visibilitychange", handleFocusOrVisibility);
 
         return () => {
-            isMounted = false;
+            clearInterval(interval);
+            window.removeEventListener("focus", handleFocusOrVisibility);
+            document.removeEventListener("visibilitychange", handleFocusOrVisibility);
         };
-    }, []);
+    }, [checkTodayStatus]);
 
     const requiredFields = [
         { key: "committee_formation_date", label: "Committee Formation Date" },
@@ -112,7 +163,8 @@ export default function Dashboard({ user, onLogout }) {
         { key: "audit_status", label: "Audit Status" },
     ];
 
-    const handleSubmit = async (e) => {
+    // Step 1: Validate required fields and open confirmation popup
+    const handleSubmit = (e) => {
         e.preventDefault();
         setSubmitted(true);
 
@@ -122,9 +174,15 @@ export default function Dashboard({ user, onLogout }) {
         );
         if (missing) {
             toast.error(`Please fill in: ${missing.label}`);
-            return;
+            return; // DO NOT open confirmation popup if validation fails
         }
 
+        // All required fields valid -> open confirmation popup
+        setShowConfirmModal(true);
+    };
+
+    // Step 2: User confirms in popup ("Yes, Submit") -> call API and preserve values
+    const handleConfirmSubmit = async () => {
         setLoading(true);
 
         try {
@@ -146,42 +204,35 @@ export default function Dashboard({ user, onLogout }) {
 
             if (!response.ok) {
                 toast.error(data.message || "Unable to submit form");
+                setShowConfirmModal(false);
                 return;
             }
 
             toast.success("Form submitted successfully!");
             setSubmitted(false);
             setHasSubmittedToday(true);
+            setShowConfirmModal(false);
 
-            setFormData({
-                committee_formation_date: "",
-                total_active_members: "",
-                member: "",
-                non_member: "",
-                achievement_15_days: "",
-                achievement_monthly: "",
+            // Preserve entered values for the current day in localStorage
+            const todayStr = currentDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+            const storageKey = `comfed_preserved_form_${user?.dcs_no || "user"}`;
+            try {
+                localStorage.setItem(
+                    storageKey,
+                    JSON.stringify({
+                        date: todayStr,
+                        formData,
+                    })
+                );
+            } catch (err) {
+                console.error("Error saving preserved form data:", err);
+            }
 
-                monthly_target: "",
-                current_month_target: "",
-                week_1_achievement: "",
-                week_2_achievement: "",
-                week_3_achievement: "",
-                week_4_achievement: "",
-                total_achievement: "",
-
-                milk_producing_members: "",
-                dat_activated_producers: "",
-                dat_receiving_producers: "",
-                payment_1_to_10: "",
-                payment_11_to_20: "",
-                payment_21_to_31: "",
-
-                meeting_members_present: "",
-                audit_status: "",
-            });
+            // Values remain in formData so user can review what was entered (NOT reset to empty)
         } catch (error) {
             console.error("Form submission error:", error);
             toast.error("Unable to connect to server");
+            setShowConfirmModal(false);
         } finally {
             setLoading(false);
         }
@@ -639,6 +690,65 @@ export default function Dashboard({ user, onLogout }) {
 
                 </form>
             </main>
+
+            {/* Confirmation Modal */}
+            {showConfirmModal && (
+                <div
+                    className="modal-overlay"
+                    onClick={() => {
+                        if (!loading) setShowConfirmModal(false);
+                    }}
+                >
+                    <div
+                        className="modal-container"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="modal-header">
+                            <div className="modal-icon-badge">
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    width="22"
+                                    height="22"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+                            </div>
+                            <h3 className="modal-title">Confirm Submission</h3>
+                        </div>
+
+                        <p className="modal-message">
+                            Are you sure you want to submit the form?
+                        </p>
+
+                        <div className="modal-actions">
+                            <button
+                                type="button"
+                                className="modal-btn modal-btn-cancel"
+                                onClick={() => setShowConfirmModal(false)}
+                                disabled={loading}
+                            >
+                                No, Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="modal-btn modal-btn-confirm"
+                                onClick={handleConfirmSubmit}
+                                disabled={loading}
+                            >
+                                {loading ? "Submitting..." : "Yes, Submit"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
