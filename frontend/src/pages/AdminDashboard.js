@@ -53,6 +53,17 @@ function formatNumber(n) {
     return Number(n).toLocaleString("en-IN");
 }
 
+/**
+ * Format a summary number (SUM of a numeric column).
+ * Whole numbers display without decimals; fractional values keep up to 2 dp.
+ */
+function formatSummaryNum(n) {
+    const num = Number(n);
+    if (isNaN(num)) return "0";
+    if (Number.isInteger(num)) return num.toLocaleString("en-IN");
+    return num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
 /** Format audit status: date if YYYY-MM-DD, otherwise string or dash */
 function formatAuditStatus(value) {
     if (value === null || value === undefined || value === "") return "–";
@@ -69,34 +80,168 @@ function formatAuditStatus(value) {
 
 const TABLE_COLUMNS = [
     // { key: "submission_id", label: "ID", render: cell },
-    { key: "submission_date", label: "Submission Date", render: formatDate },
-    { key: "union_name", label: "Union Name", render: cell },
-    { key: "dcs_name", label: "DCS Name", render: cell },
-    { key: "dcs_no", label: "DCS No", render: cell },
-    { key: "dcs_code", label: "DCS Code", render: cell },
+    {
+        key: "submission_date",
+        label: <>Submission Date<br />प्रपत्र जमा करने की तिथि</>,
+        render: formatDate
+    },
+
+    {
+        key: "union_name",
+        label: <>Union Name<br />संघ का नाम</>,
+        render: cell
+    },
+
+    {
+        key: "dcs_name",
+        label: <>DCS Name<br />डी०सी०एस० का नाम</>,
+        render: cell
+    },
+
+    {
+        key: "dcs_no",
+        label: <>DCS No<br />डी०सी०एस० संख्या</>,
+        render: cell
+    },
+
+    {
+        key: "dcs_code",
+        label: <>DCS Code<br />डी०सी०एस० कोड</>,
+        render: cell
+    },
+
     // { key: "dcs_id", label: "DCS ID", render: cell },
-    { key: "secretary_name", label: "Secretary Name", render: cell },
-    { key: "committee_formation_date", label: "Committee Date", render: formatDate },
-    { key: "total_active_members", label: "Active Members", render: formatNumber },
-    { key: "member", label: "Member", render: formatNumber },
-    { key: "non_member", label: "Non-Member", render: formatNumber },
-    { key: "achievement_15_days", label: "15 Day Achv.", render: formatNumber },
-    { key: "achievement_monthly", label: "Monthly Achv.", render: formatNumber },
-    { key: "monthly_target", label: "Monthly Target", render: formatNumber },
-    { key: "current_month_target", label: "Current Target", render: formatNumber },
-    { key: "week_1_achievement", label: "Week 1", render: formatNumber },
-    { key: "week_2_achievement", label: "Week 2", render: formatNumber },
-    { key: "week_3_achievement", label: "Week 3", render: formatNumber },
-    { key: "week_4_achievement", label: "Week 4", render: formatNumber },
-    { key: "total_achievement", label: "Total Achv.", render: formatNumber },
-    { key: "milk_producing_members", label: "Milk Producers", render: formatNumber },
-    { key: "dat_activated_producers", label: "DAT Activated", render: formatNumber },
-    { key: "dat_receiving_producers", label: "DAT Receiving", render: formatNumber },
-    { key: "payment_1_to_10", label: "Pay 1–10", render: formatNumber },
-    { key: "payment_11_to_20", label: "Pay 11–20", render: formatNumber },
-    { key: "payment_21_to_31", label: "Pay 21–31", render: formatNumber },
-    { key: "meeting_members_present", label: "Meeting Present", render: formatNumber },
-    { key: "audit_status", label: "Audit Status", render: formatAuditStatus },
+
+    {
+        key: "secretary_name",
+        label: <>Secretary Name<br />सचिव का नाम</>,
+        render: cell
+    },
+    {
+        key: "committee_formation_date",
+        label: <>Committee Date<br />समिति गठन की तिथि</>,
+        render: formatDate
+    },
+
+    {
+        key: "total_active_members",
+        label: <>Total Active Members<br />कुल सदस्य एवं असदस्य की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "member",
+        label: <>Member<br />सदस्य संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "non_member",
+        label: <>Non-Member<br />असदस्य संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "achievement_15_days",
+        label: <>15 Days Achievement<br />विगत 15 दिन में नये जुड़े सदस्यों की सख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "achievement_monthly",
+        label: <>Monthly Achievement<br />इस माह में नये जुड़े सदस्यों की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "monthly_target",
+        label: <>Monthly Target<br />कुल लक्ष्य</>,
+        render: formatNumber
+    },
+
+    {
+        key: "current_month_target",
+        label: <>Current Month Target<br />इस माह का लक्ष्य</>,
+        render: formatNumber
+    },
+
+    {
+        key: "week_1_achievement",
+        label: <>Week 1 Achievement<br />प्रथम सप्ताह की उपलब्धि</>,
+        render: formatNumber
+    },
+
+    {
+        key: "week_2_achievement",
+        label: <>Week 2 Achievement<br />द्वितीय सप्ताह की उपलब्धि</>,
+        render: formatNumber
+    },
+
+    {
+        key: "week_3_achievement",
+        label: <>Week 3 Achievement<br />तृतीय सप्ताह की उपलब्धि</>,
+        render: formatNumber
+    },
+
+    {
+        key: "week_4_achievement",
+        label: <>Week 4 Achievement<br />चतुर्थ सप्ताह की उपलब्धि</>,
+        render: formatNumber
+    },
+
+    {
+        key: "total_achievement",
+        label: <>Total Achievement<br />कुल उपलब्धि</>,
+        render: formatNumber
+    },
+
+    {
+        key: "milk_producing_members",
+        label: <>Total Farmers<br />कुल दुग्ध उत्पादकों की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "dat_activated_producers",
+        label: <>Total Registered Farmers in DAT<br />DAT में कुल स्वीकृत उत्पादकों की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "dat_receiving_producers",
+        label: <>Total Pouring Farmers in DAT<br />DAT में कुल दूध देने वाले सदस्यों की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "payment_1_to_10",
+        label: <>Payment 1–10 in ₹<br />राशि विपत्र अवधि 1-10</>,
+        render: formatNumber
+    },
+
+    {
+        key: "payment_11_to_20",
+        label: <>Payment 11–20 in ₹<br />राशि विपत्र अवधि 11-20</>,
+        render: formatNumber
+    },
+
+    {
+        key: "payment_21_to_31",
+        label: <>Payment 21–31 in ₹<br />राशि विपत्र अवधि 21-31</>,
+        render: formatNumber
+    },
+
+    {
+        key: "meeting_members_present",
+        label: <>Members Present in Meeting<br />उपस्थित सदस्यों की संख्या</>,
+        render: formatNumber
+    },
+
+    {
+        key: "audit_status",
+        label: <>Audit Status<br />समिति की अन्तिम ऑडिट का वर्ष</>,
+        render: formatAuditStatus
+    },
     { key: "submitted_at", label: "Submitted At", render: formatDateTime },
 ];
 
@@ -112,6 +257,44 @@ const AdminTableRow = React.memo(function AdminTableRow({ row, columns }) {
         </tr>
     );
 });
+
+
+// ────────────────────────────────────────────
+// EXCEL EXPORT COLUMN CONFIG
+// Separate from TABLE_COLUMNS so labels can use \n (not JSX <br />)
+// ────────────────────────────────────────────
+
+const EXCEL_COLUMNS = [
+    { key: "submission_date", header: "Submission Date \n जमा करने की तिथि", render: formatDate },
+    { key: "union_name", header: "Union Name \n संघ का नाम", render: cell },
+    { key: "dcs_name", header: "DCS Name \n डी०सी०एस० का नाम", render: cell },
+    { key: "dcs_no", header: "DCS No \n डी०सी०एस० संख्या", render: cell },
+    { key: "dcs_code", header: "DCS Code \n डी०सी०एस० कोड", render: cell },
+    { key: "secretary_name", header: "Secretary Name \n सचिव का नाम", render: cell },
+    { key: "committee_formation_date", header: "Committee Date \n समिति गठन की तिथि", render: formatDate },
+    { key: "total_active_members", header: "Total Active Members \n कुल सदस्य एवं असदस्य की संख्या", render: formatNumber },
+    { key: "member", header: "Member \n सदस्य संख्या", render: formatNumber },
+    { key: "non_member", header: "Non-Member \n असदस्य संख्या", render: formatNumber },
+    { key: "achievement_15_days", header: "15 Days Achievement \n विगत 15 दिन में नये जुड़े सदस्यों की सख्या", render: formatNumber },
+    { key: "achievement_monthly", header: "Monthly Achievement \n इस माह में नये जुड़े सदस्यों की संख्या", render: formatNumber },
+    { key: "monthly_target", header: "Monthly Target \n कुल लक्ष्य", render: formatNumber },
+    { key: "current_month_target", header: "Current Month Target \n इस माह का लक्ष्य", render: formatNumber },
+    { key: "week_1_achievement", header: "Week 1 Achievement \n प्रथम सप्ताह की उपलब्धि", render: formatNumber },
+    { key: "week_2_achievement", header: "Week 2 Achievement \n द्वितीय सप्ताह की उपलब्धि", render: formatNumber },
+    { key: "week_3_achievement", header: "Week 3 Achievement \n तृतीय सप्ताह की उपलब्धि", render: formatNumber },
+    { key: "week_4_achievement", header: "Week 4 Achievement \n चतुर्थ सप्ताह की उपलब्धि", render: formatNumber },
+    { key: "total_achievement", header: "Total Achievement \n कुल उपलब्धि", render: formatNumber },
+    { key: "milk_producing_members", header: "Total Farmers \n कुल दुग्ध उत्पादकों की संख्या", render: formatNumber },
+    { key: "dat_activated_producers", header: "Total Registered Farmers in DAT \n DAT में कुल स्वीकृत उत्पादकों की संख्या", render: formatNumber },
+    { key: "dat_receiving_producers", header: "Total Pouring Farmers in DAT \n DAT में कुल दूध देने वाले सदस्यों की संख्या", render: formatNumber },
+    { key: "payment_1_to_10", header: "Payment 1\u201310 in \u20B9 \n राशि विपत्र अवधि 1-10", render: formatNumber },
+    { key: "payment_11_to_20", header: "Payment 11\u201320 in \u20B9 \n राशि विपत्र अवधि 11-20", render: formatNumber },
+    { key: "payment_21_to_31", header: "Payment 21\u201331 in \u20B9 \n राशि विपत्र अवधि 21-31", render: formatNumber },
+    { key: "meeting_members_present", header: "Members Present in Meeting \n उपस्थित सदस्यों की संख्या", render: formatNumber },
+    { key: "audit_status", header: "Audit Status \n समिति की अन्तिम ऑडिट का वर्ष", render: (v) => (v === null || v === undefined || v === "" ? "" : String(v)) },
+    { key: "submitted_at", header: "Submitted At \n जमा करने का समय", render: formatDateTime },
+];
+
 
 
 // ════════════════════════════════════════════
@@ -146,6 +329,21 @@ export default function AdminDashboard({ user, onLogout }) {
 
     const searchTimer = useRef(null);
     const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    // ── Summary ──
+    const SUMMARY_DEFAULTS = {
+        week_1_achievement: 0,
+        week_2_achievement: 0,
+        week_3_achievement: 0,
+        week_4_achievement: 0,
+        total_achievement: 0,
+        payment_1_to_10: 0,
+        payment_11_to_20: 0,
+        payment_21_to_31: 0,
+        audit_count: 0,
+    };
+    const [summary, setSummary] = useState(SUMMARY_DEFAULTS);
+    const [summaryLoading, setSummaryLoading] = useState(true);
 
     // ── Auth helper ──
     const token = localStorage.getItem("token");
@@ -246,6 +444,50 @@ export default function AdminDashboard({ user, onLogout }) {
         fetchSubmissions();
     }, [fetchSubmissions]);
 
+    // ── Fetch Summary ──
+    const fetchSummary = useCallback(async () => {
+        setSummaryLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (unionId) params.set("union_id", unionId);
+            if (dcsId) params.set("dcs_id", dcsId);
+            if (debouncedSearch) params.set("search", debouncedSearch);
+            if (dateFrom) params.set("date_from", dateFrom);
+            if (dateTo) params.set("date_to", dateTo);
+
+            const res = await fetch(
+                `${API}/api/admin/submissions/summary?${params.toString()}`,
+                { headers: authHeaders() }
+            );
+
+            if (res.ok) {
+                const json = await res.json();
+                setSummary({
+                    week_1_achievement: Number(json.week_1_achievement) || 0,
+                    week_2_achievement: Number(json.week_2_achievement) || 0,
+                    week_3_achievement: Number(json.week_3_achievement) || 0,
+                    week_4_achievement: Number(json.week_4_achievement) || 0,
+                    total_achievement: Number(json.total_achievement) || 0,
+                    payment_1_to_10: Number(json.payment_1_to_10) || 0,
+                    payment_11_to_20: Number(json.payment_11_to_20) || 0,
+                    payment_21_to_31: Number(json.payment_21_to_31) || 0,
+                    audit_count: Number(json.audit_count) || 0,
+                });
+            } else {
+                setSummary(SUMMARY_DEFAULTS);
+            }
+        } catch {
+            setSummary(SUMMARY_DEFAULTS);
+        } finally {
+            setSummaryLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [unionId, dcsId, debouncedSearch, dateFrom, dateTo, authHeaders]);
+
+    useEffect(() => {
+        fetchSummary();
+    }, [fetchSummary]);
+
     // ── Filter handlers ──
     const handleUnionChange = (e) => {
         setUnionId(e.target.value);
@@ -283,37 +525,53 @@ export default function AdminDashboard({ user, onLogout }) {
             setExporting("excel");
 
             try {
-                // Dynamically import xlsx on demand
                 const XLSX = await import("xlsx");
 
-                // Export ONLY what is in the table on UI:
-                // 1. Only active columns defined in TABLE_COLUMNS
-                // 2. Only rows currently loaded and displayed in the table
-                // 3. Formatted exactly as shown on the UI
-                const exportRows = data.map((row) => {
-                    const rowObj = {};
-                    TABLE_COLUMNS.forEach((col) => {
-                        const formatted = col.render ? col.render(row[col.key]) : row[col.key];
-                        rowObj[col.label] = formatted === "–" ? "" : formatted;
-                    });
-                    return rowObj;
+                // ── Header row (bilingual, \n-separated) ──
+                const headerRow = EXCEL_COLUMNS.map((col) => col.header);
+
+                // ── Data rows (formatted, same as UI) ──
+                const dataRows = data.map((row) =>
+                    EXCEL_COLUMNS.map((col) => {
+                        const formatted = col.render
+                            ? col.render(row[col.key])
+                            : (row[col.key] ?? "");
+                        return formatted === "–" ? "" : (formatted ?? "");
+                    })
+                );
+
+                // ── Build worksheet from AOA ──
+                const aoa = [headerRow, ...dataRows];
+                const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+
+                // ── Column widths (auto-fit, capped) ──
+                worksheet["!cols"] = EXCEL_COLUMNS.map((col) => {
+                    const headerLen = col.header.split("\n")[0].length;
+                    const maxDataLen = data.reduce((max, r) => {
+                        const val = col.render ? col.render(r[col.key]) : r[col.key];
+                        const len = val && val !== "–" ? String(val).length : 0;
+                        return Math.max(max, len);
+                    }, 0);
+                    return { wch: Math.min(Math.max(headerLen, maxDataLen) + 4, 48) };
                 });
 
-                const worksheet = XLSX.utils.json_to_sheet(exportRows);
+                // ── Header row height (~52pt for 2 lines of text) ──
+                worksheet["!rows"] = [{ hpt: 52 }];
+
+                // ── Apply wrapText + bold + blue background to header cells ──
+                const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
+                for (let C = range.s.c; C <= range.e.c; C++) {
+                    const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+                    if (!worksheet[addr]) continue;
+                    worksheet[addr].s = {
+                        font: { bold: true, color: { rgb: "FFFFFF" } },
+                        fill: { fgColor: { rgb: "1D4ED8" }, patternType: "solid" },
+                        alignment: { wrapText: true, vertical: "top" },
+                    };
+                }
+
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Submissions");
-
-                // Auto-fit column widths based on content
-                worksheet["!cols"] = TABLE_COLUMNS.map((col) => {
-                    const maxValLen = Math.max(
-                        col.label.length,
-                        ...data.map((r) => {
-                            const val = col.render ? col.render(r[col.key]) : r[col.key];
-                            return val && val !== "–" ? String(val).length : 0;
-                        })
-                    );
-                    return { wch: Math.min(Math.max(maxValLen + 2, 12), 40) };
-                });
 
                 XLSX.writeFile(
                     workbook,
@@ -425,17 +683,109 @@ export default function AdminDashboard({ user, onLogout }) {
             {/* Main Content */}
             <main className="admin-main">
 
-                {/* Summary Card */}
-                <div className="admin-summary-card">
-                    {/* <div className="admin-summary-icon">📊</div> */}
-                    <div>
-                        <div className="admin-summary-label">
-                            Total Submissions
-                        </div>
-                        <div className="admin-summary-value">
-                            {loading ? "…" : formatNumber(total)}
+                {/* Summary Cards Grid */}
+                <div className="admin-summary-grid">
+
+                    {/* Total Submissions – existing card */}
+                    <div className="admin-summary-card">
+                        <div>
+                            <div className="admin-summary-label">Total Submissions</div>
+                            <div className="admin-summary-value">
+                                {loading ? "…" : formatNumber(total)}
+                            </div>
                         </div>
                     </div>
+
+                    {/* Week 1 */}
+                    <div className="admin-summary-card admin-summary-card--week1">
+                        <div>
+                            <div className="admin-summary-label">Week 1 Achievement</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.week_1_achievement)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Week 2 */}
+                    <div className="admin-summary-card admin-summary-card--week2">
+                        <div>
+                            <div className="admin-summary-label">Week 2 Achievement</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.week_2_achievement)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Week 3 */}
+                    <div className="admin-summary-card admin-summary-card--week3">
+                        <div>
+                            <div className="admin-summary-label">Week 3 Achievement</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.week_3_achievement)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Week 4 */}
+                    <div className="admin-summary-card admin-summary-card--week4">
+                        <div>
+                            <div className="admin-summary-label">Week 4 Achievement</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.week_4_achievement)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Total Achievement */}
+                    <div className="admin-summary-card admin-summary-card--total">
+                        <div>
+                            <div className="admin-summary-label">Total Achievement</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.total_achievement)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment 1-10 */}
+                    <div className="admin-summary-card admin-summary-card--pay1">
+                        <div>
+                            <div className="admin-summary-label">Payment 1–10 (₹)</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.payment_1_to_10)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment 11-20 */}
+                    <div className="admin-summary-card admin-summary-card--pay2">
+                        <div>
+                            <div className="admin-summary-label">Payment 11–20 (₹)</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.payment_11_to_20)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment 21-31 */}
+                    <div className="admin-summary-card admin-summary-card--pay3">
+                        <div>
+                            <div className="admin-summary-label">Payment 21–31 (₹)</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatSummaryNum(summary.payment_21_to_31)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Audit Count */}
+                    <div className="admin-summary-card admin-summary-card--audit">
+                        <div>
+                            <div className="admin-summary-label">Audit Count</div>
+                            <div className="admin-summary-value">
+                                {summaryLoading ? "…" : formatNumber(summary.audit_count)}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
 

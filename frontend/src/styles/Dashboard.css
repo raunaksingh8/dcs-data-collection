@@ -286,6 +286,7 @@
     background: white;
 
     border: 1px solid #e6eaf0;
+
     border-radius: 14px;
 
     padding: 25px;
@@ -295,16 +296,23 @@
     animation: sectionAppear 0.5s ease both;
 }
 
+.form-section:nth-child(1) {
+    border-left: 4px solid #1ddb04;
+}
+
 .form-section:nth-child(2) {
     animation-delay: 0.05s;
+    border-left: 4px solid #fa6502;
 }
 
 .form-section:nth-child(3) {
     animation-delay: 0.1s;
+    border-left: 4px solid #e106f9;
 }
 
 .form-section:nth-child(4) {
     animation-delay: 0.15s;
+    border-left: 4px solid #00cef8;
 }
 
 @keyframes sectionAppear {
@@ -552,7 +560,8 @@
     font-weight: 700;
 }
 
-.input-error input {
+.input-error input,
+.input-error select {
     border-color: #e53e3e !important;
     background-color: #fff5f5;
     box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.15);
@@ -737,6 +746,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -747,6 +757,7 @@
         opacity: 0;
         transform: scale(0.96);
     }
+
     to {
         opacity: 1;
         transform: scale(1);

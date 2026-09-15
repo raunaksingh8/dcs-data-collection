@@ -125,38 +125,55 @@
 }
 
 
-/* ── Summary Card ── */
+/* ── Summary Cards Grid ── */
+
+.admin-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
 
 .admin-summary-card {
     background: white;
     border: 1px solid #e6eaf0;
     border-left: 4px solid #1d4ed8;
     border-radius: 14px;
-    padding: 22px 28px;
-    margin-bottom: 20px;
+    padding: 18px 20px;
     box-shadow: 0 3px 12px rgba(15, 23, 42, 0.025);
 
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
 
     animation: adminFadeIn 0.4s ease both;
 }
 
+/* Color accents for each card */
+.admin-summary-card--week1 { border-left-color: #16a34a; }
+.admin-summary-card--week2 { border-left-color: #0891b2; }
+.admin-summary-card--week3 { border-left-color: #7c3aed; }
+.admin-summary-card--week4 { border-left-color: #d97706; }
+.admin-summary-card--total { border-left-color: #0f766e; }
+.admin-summary-card--pay1  { border-left-color: #dc2626; }
+.admin-summary-card--pay2  { border-left-color: #db2777; }
+.admin-summary-card--pay3  { border-left-color: #059669; }
+.admin-summary-card--audit { border-left-color: #6366f1; }
+
 .admin-summary-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 12px;
     background: #eff6ff;
-    font-size: 22px;
+    font-size: 20px;
     flex-shrink: 0;
 }
 
 .admin-summary-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: #8a94a3;
     text-transform: uppercase;
@@ -164,10 +181,10 @@
 }
 
 .admin-summary-value {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     color: #172033;
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
 
@@ -594,6 +611,12 @@
     }
 }
 
+@media (max-width: 600px) {
+    .admin-summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 480px) {
     .admin-header {
         padding: 12px 15px;
@@ -603,11 +626,11 @@
         display: none;
     }
 
-    .admin-summary-card {
-        padding: 18px 16px;
+    .admin-summary-grid {
+        grid-template-columns: 1fr;
     }
 
     .admin-summary-value {
-        font-size: 22px;
+        font-size: 20px;
     }
 }

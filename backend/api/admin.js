@@ -268,6 +268,55 @@ module.exports = (app) => {
 
 
   // ──────────────────────────────────────────
+  // GET /api/admin/submissions/summary
+  // Aggregated stats – same filters as list
+  // ──────────────────────────────────────────
+  app.get("/api/admin/submissions/summary", authMiddleware, async (req, res) => {
+    if (!adminOnly(req, res)) return;
+
+    try {
+      const { where, params } = buildSubmissionFilters(req.query);
+
+      const sql = `
+        SELECT
+          COALESCE(SUM(fs.week_1_achievement),  0) AS week_1_achievement,
+          COALESCE(SUM(fs.week_2_achievement),  0) AS week_2_achievement,
+          COALESCE(SUM(fs.week_3_achievement),  0) AS week_3_achievement,
+          COALESCE(SUM(fs.week_4_achievement),  0) AS week_4_achievement,
+          COALESCE(SUM(fs.total_achievement),   0) AS total_achievement,
+          COALESCE(SUM(fs.payment_1_to_10),     0) AS payment_1_to_10,
+          COALESCE(SUM(fs.payment_11_to_20),    0) AS payment_11_to_20,
+          COALESCE(SUM(fs.payment_21_to_31),    0) AS payment_21_to_31,
+          COUNT(CASE WHEN fs.audit_status IN (
+            '2018-2019','2019-2020','2020-2021',
+            '2021-2022','2022-2023','2023-2024','2024-2025'
+          ) THEN 1 END) AS audit_count
+        ${FROM_JOINS}
+        ${where}
+      `;
+
+      const result = await pool.query(sql, params);
+      const row = result.rows[0];
+
+      return res.json({
+        week_1_achievement: Number(row.week_1_achievement) || 0,
+        week_2_achievement: Number(row.week_2_achievement) || 0,
+        week_3_achievement: Number(row.week_3_achievement) || 0,
+        week_4_achievement: Number(row.week_4_achievement) || 0,
+        total_achievement:  Number(row.total_achievement)  || 0,
+        payment_1_to_10:    Number(row.payment_1_to_10)    || 0,
+        payment_11_to_20:   Number(row.payment_11_to_20)   || 0,
+        payment_21_to_31:   Number(row.payment_21_to_31)   || 0,
+        audit_count:        Number(row.audit_count)        || 0,
+      });
+    } catch (err) {
+      console.error("Admin summary error:", err);
+      return res.status(500).json({ message: "Unable to load summary" });
+    }
+  });
+
+
+  // ──────────────────────────────────────────
   // GET /api/admin/submissions
   // Paginated + filtered
   // ──────────────────────────────────────────

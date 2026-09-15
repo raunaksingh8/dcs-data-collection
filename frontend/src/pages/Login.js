@@ -137,7 +137,7 @@ const Login = ({ onLogin }) => {
                                 setPassword("");
                             }}
                         >
-                            User
+                            DCS
                         </button>
 
 

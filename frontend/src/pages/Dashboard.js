@@ -381,31 +381,20 @@ export default function Dashboard({ user, onLogout }) {
 
                             <div>
                                 <h3>Member Details / सदस्य </h3>
-                                <p>Committee membership information</p>
+                                <p>DCS membership information</p>
                             </div>
                         </div>
 
                         <div className="form-grid">
 
                             <FormInput
-                                label="Committee Formation Date ( समिति गठन की तिथि )"
+                                label="DCS Formation Date ( समिति गठन की तिथि )"
                                 name="committee_formation_date"
                                 type="date"
                                 value={formData.committee_formation_date}
                                 onChange={handleChange}
                                 required
                                 showError={submitted && !formData.committee_formation_date}
-                            />
-
-                            <FormInput
-                                label="Total Active Members ( सदस्य एवं असदस्य की संख्या (कुल) )"
-                                name="total_active_members"
-                                type="number"
-                                value={formData.total_active_members}
-                                onChange={handleChange}
-                                placeholder="Enter number"
-                                required
-                                showError={submitted && formData.total_active_members === ""}
                             />
 
                             <FormInput
@@ -431,7 +420,18 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="15 Days Achievement ( 15 दिन की उपलब्धि )"
+                                label="Total Members (कुल सदस्य एवं असदस्य की संख्या )"
+                                name="total_active_members"
+                                type="number"
+                                value={formData.total_active_members}
+                                onChange={handleChange}
+                                placeholder="Enter number"
+                                required
+                                showError={submitted && formData.total_active_members === ""}
+                            />
+
+                            <FormInput
+                                label="15 Days Achievement ( विगत 15 दिन में नये जुड़े सदस्यों की सख्या )"
                                 name="achievement_15_days"
                                 type="number"
                                 value={formData.achievement_15_days}
@@ -442,7 +442,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Monthly Achievement ( इस माह की उपलब्धि )"
+                                label="Monthly Achievement ( इस माह में नये जुड़े सदस्यों की संख्या )"
                                 name="achievement_monthly"
                                 type="number"
                                 value={formData.achievement_monthly}
@@ -493,7 +493,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Week 1 Achievement (प्रथम सप्ताह)"
+                                label="Week 1 Achievement (प्रथम सप्ताह की उपलब्धि)"
                                 name="week_1_achievement"
                                 type="number"
                                 step="0.01"
@@ -505,7 +505,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Week 2 Achievement (द्वितीय सप्ताह)"
+                                label="Week 2 Achievement (द्वितीय सप्ताह की उपलब्धि)"
                                 name="week_2_achievement"
                                 type="number"
                                 step="0.01"
@@ -517,7 +517,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Week 3 Achievement (तृतीय सप्ताह)"
+                                label="Week 3 Achievement (तृतीय सप्ताह की उपलब्धि)"
                                 name="week_3_achievement"
                                 type="number"
                                 step="0.01"
@@ -529,7 +529,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Week 4 Achievement (चतुर्थ सप्ताह)"
+                                label="Week 4 Achievement (चतुर्थ सप्ताह की उपलब्धि)"
                                 name="week_4_achievement"
                                 type="number"
                                 step="0.01"
@@ -569,7 +569,7 @@ export default function Dashboard({ user, onLogout }) {
                         <div className="form-grid">
 
                             <FormInput
-                                label="Milk Producing Members (कुल दुग्ध उत्पादकों की संख्या)"
+                                label="Total Farmers (कुल दुग्ध उत्पादकों की संख्या)"
                                 name="milk_producing_members"
                                 type="number"
                                 value={formData.milk_producing_members}
@@ -580,7 +580,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Producers with Activated Accounts (DAT में कुल स्वीकृत उत्पादकों की संख्या)"
+                                label="Total Registered Farmers in DAT (DAT में कुल स्वीकृत उत्पादकों की संख्या)"
                                 name="dat_activated_producers"
                                 type="number"
                                 value={formData.dat_activated_producers}
@@ -591,7 +591,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Producers Receiving DAT (DAT में कुल दूध देने वाले सदस्यों की संख्या)"
+                                label="Total Pouring Farmers in DAT (DAT में कुल दूध देने वाले सदस्यों की संख्या)"
                                 name="dat_receiving_producers"
                                 type="number"
                                 value={formData.dat_receiving_producers}
@@ -602,7 +602,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Payment 1–10 (विपत्र अवधि 1-10)"
+                                label="Payment 1–10 in ₹ (राशि विपत्र अवधि 1-10)"
                                 name="payment_1_to_10"
                                 type="number"
                                 step="0.01"
@@ -614,7 +614,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Payment 11–20 (विपत्र अवधि 11-20)"
+                                label="Payment 11–20 in ₹ (राशि विपत्र अवधि 11-20)"
                                 name="payment_11_to_20"
                                 type="number"
                                 step="0.01"
@@ -626,7 +626,7 @@ export default function Dashboard({ user, onLogout }) {
                             />
 
                             <FormInput
-                                label="Payment 21–31 (विपत्र अवधि 21-31)"
+                                label="Payment 21–31 in ₹ (राशि विपत्र अवधि 21-31)"
                                 name="payment_21_to_31"
                                 type="number"
                                 step="0.01"
@@ -664,15 +664,33 @@ export default function Dashboard({ user, onLogout }) {
                                 showError={submitted && formData.meeting_members_present === ""}
                             />
 
-                            <FormInput
-                                label="Audit Status (ऑडिट की स्थिति)"
-                                name="audit_status"
-                                type="date"
-                                value={formData.audit_status}
-                                onChange={handleChange}
-                                required
-                                showError={submitted && !formData.audit_status}
-                            />
+                            <div className={`input-group${submitted && !formData.audit_status ? " input-error" : ""}`}>
+                                <label>
+                                    Audit Status (समिति की अन्तिम ऑडिट का वर्ष)
+                                    <span className="required-star"> *</span>
+                                </label>
+
+                                <select
+                                    name="audit_status"
+                                    value={formData.audit_status}
+                                    onChange={handleChange}
+                                    required
+                                >
+                                    <option value="">Select Audit Status</option>
+                                    <option value="2018-2019">2018-2019</option>
+                                    <option value="2019-2020">2019-2020</option>
+                                    <option value="2020-2021">2020-2021</option>
+                                    <option value="2021-2022">2021-2022</option>
+                                    <option value="2022-2023">2022-2023</option>
+                                    <option value="2023-2024">2023-2024</option>
+                                    <option value="2024-2025">2024-2025</option>
+                                    <option value="New DCS no audit">New DCS no audit</option>
+                                </select>
+
+                                {submitted && !formData.audit_status && (
+                                    <span className="error-message">This field is required</span>
+                                )}
+                            </div>
 
                         </div>
                     </section>
