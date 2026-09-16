@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 });
 
 const allowedOrigins = [
-  "https://comfed-dcs.vercel.app",
+  "https://comfed.vercel.app",
   "http://localhost:3000",
 ];
 
