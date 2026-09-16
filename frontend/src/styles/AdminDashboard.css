@@ -72,7 +72,7 @@
     display: block;
     margin-top: 2px;
     font-size: 11px;
-    color: #8a94a3;
+    color: #000000;
 }
 
 .admin-user-info {
@@ -94,7 +94,7 @@
     display: block;
     margin-top: 3px;
     font-size: 11px;
-    color: #8a94a3;
+    color: black;
 }
 
 .admin-logout-btn {
@@ -132,10 +132,11 @@
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 14px;
     margin-bottom: 20px;
+
 }
 
 .admin-summary-card {
-    background: white;
+    background: #ceebf7;
     border: 1px solid #e6eaf0;
     border-left: 4px solid #1d4ed8;
     border-radius: 14px;
@@ -150,15 +151,50 @@
 }
 
 /* Color accents for each card */
-.admin-summary-card--week1 { border-left-color: #16a34a; }
-.admin-summary-card--week2 { border-left-color: #0891b2; }
-.admin-summary-card--week3 { border-left-color: #7c3aed; }
-.admin-summary-card--week4 { border-left-color: #d97706; }
-.admin-summary-card--total { border-left-color: #0f766e; }
-.admin-summary-card--pay1  { border-left-color: #dc2626; }
-.admin-summary-card--pay2  { border-left-color: #db2777; }
-.admin-summary-card--pay3  { border-left-color: #059669; }
-.admin-summary-card--audit { border-left-color: #6366f1; }
+.admin-summary-card--week1 {
+    border-left-color: #16a34a;
+    background: #FAF7D7;
+}
+
+.admin-summary-card--week2 {
+    border-left-color: #7c3aed;
+    background: #E8DDF7;
+}
+
+.admin-summary-card--week3 {
+    border-left-color: #2563eb;
+    background: #DDEAF7;
+}
+
+.admin-summary-card--week4 {
+    border-left-color: #059669;
+    background: #DDF2E2;
+}
+
+.admin-summary-card--total {
+    border-left-color: #db2777;
+    background: #F7DDE9;
+}
+
+.admin-summary-card--pay1 {
+    border-left-color: #ea580c;
+    background: #F7E5D7;
+}
+
+.admin-summary-card--pay2 {
+    border-left-color: #dc2626;
+    background: #F7DDDD;
+}
+
+.admin-summary-card--pay3 {
+    border-left-color: #0891b2;
+    background: #DDF2F2;
+}
+
+.admin-summary-card--audit {
+    border-left-color: #8b5cf6;
+    background: #E5DDF5;
+}
 
 .admin-summary-icon {
     width: 44px;
@@ -175,7 +211,7 @@
 .admin-summary-label {
     font-size: 11px;
     font-weight: 600;
-    color: #8a94a3;
+    color: black;
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
@@ -216,7 +252,7 @@
 .admin-filter-group label {
     font-size: 10px;
     font-weight: 600;
-    color: #8a94a3;
+    color: #000000;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -481,7 +517,9 @@
 }
 
 @keyframes adminSpin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .admin-loading-text {
@@ -553,6 +591,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
