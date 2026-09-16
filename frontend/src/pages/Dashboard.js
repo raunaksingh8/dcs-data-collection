@@ -38,6 +38,7 @@ export default function Dashboard({ user, onLogout }) {
     const [hasSubmittedToday, setHasSubmittedToday] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [currentDate, setCurrentDate] = useState("");
+    const [fixedFields, setFixedFields] = useState(null);
 
     const [formData, setFormData] = useState(INITIAL_FORM_DATA);
 
@@ -78,6 +79,10 @@ export default function Dashboard({ user, onLogout }) {
 
                 const storageKey = `comfed_preserved_form_${user?.dcs_no || "user"}`;
 
+                if (data.fixedFields) {
+                    setFixedFields(data.fixedFields);
+                }
+
                 if (data.submitted) {
                     setHasSubmittedToday(true);
 
@@ -87,14 +92,18 @@ export default function Dashboard({ user, onLogout }) {
                         if (saved) {
                             const parsed = JSON.parse(saved);
                             if (parsed && parsed.date === serverDate && parsed.formData) {
-                                setFormData(parsed.formData);
+                                setFormData({ ...parsed.formData, ...(data.fixedFields || {}) });
                             } else {
                                 // Previous day or date mismatch -> clear
                                 localStorage.removeItem(storageKey);
+                                setFormData((prev) => ({ ...prev, ...(data.fixedFields || {}) }));
                             }
+                        } else {
+                            setFormData((prev) => ({ ...prev, ...(data.fixedFields || {}) }));
                         }
                     } catch (err) {
                         console.error("Error reading preserved form data:", err);
+                        setFormData((prev) => ({ ...prev, ...(data.fixedFields || {}) }));
                     }
                 } else {
                     // Not submitted today (either new day or never submitted today):
@@ -102,8 +111,10 @@ export default function Dashboard({ user, onLogout }) {
                     setHasSubmittedToday((prevSubmitted) => {
                         if (prevSubmitted) {
                             // Midnight crossed into a new day
-                            setFormData(INITIAL_FORM_DATA);
+                            setFormData({ ...INITIAL_FORM_DATA, ...(data.fixedFields || {}) });
                             setSubmitted(false);
+                        } else {
+                            setFormData((prev) => ({ ...prev, ...(data.fixedFields || {}) }));
                         }
                         return false;
                     });
@@ -393,8 +404,10 @@ export default function Dashboard({ user, onLogout }) {
                                 type="date"
                                 value={formData.committee_formation_date}
                                 onChange={handleChange}
-                                required
-                                showError={submitted && !formData.committee_formation_date}
+                                required={!fixedFields}
+                                showError={submitted && !formData.committee_formation_date && !fixedFields}
+                                locked={!!fixedFields}
+                                disabled={!!fixedFields}
                             />
 
                             <FormInput
@@ -404,8 +417,10 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.member}
                                 onChange={handleChange}
                                 placeholder="Enter number"
-                                required
-                                showError={submitted && formData.member === ""}
+                                required={!fixedFields}
+                                showError={submitted && formData.member === "" && !fixedFields}
+                                locked={!!fixedFields}
+                                disabled={!!fixedFields}
                             />
 
                             <FormInput
@@ -476,8 +491,10 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.monthly_target}
                                 onChange={handleChange}
                                 placeholder="Enter target"
-                                required
-                                showError={submitted && formData.monthly_target === ""}
+                                required={!fixedFields}
+                                showError={submitted && formData.monthly_target === "" && !fixedFields}
+                                locked={!!fixedFields}
+                                disabled={!!fixedFields}
                             />
 
                             <FormInput
@@ -488,8 +505,10 @@ export default function Dashboard({ user, onLogout }) {
                                 value={formData.current_month_target}
                                 onChange={handleChange}
                                 placeholder="Enter target"
-                                required
-                                showError={submitted && formData.current_month_target === ""}
+                                required={!fixedFields}
+                                showError={submitted && formData.current_month_target === "" && !fixedFields}
+                                locked={!!fixedFields}
+                                disabled={!!fixedFields}
                             />
 
                             <FormInput
@@ -664,17 +683,26 @@ export default function Dashboard({ user, onLogout }) {
                                 showError={submitted && formData.meeting_members_present === ""}
                             />
 
-                            <div className={`input-group${submitted && !formData.audit_status ? " input-error" : ""}`}>
+                            <div className={`input-group${submitted && !formData.audit_status && !fixedFields ? " input-error" : ""}${fixedFields ? " input-locked" : ""}`}>
                                 <label>
                                     Audit Status (समिति की अन्तिम ऑडिट का वर्ष)
-                                    <span className="required-star"> *</span>
+                                    {fixedFields ? (
+                                        <span className="lock-icon" title="This field is permanently locked">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                                <path d="M12 2C9.243 2 7 4.243 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.757-2.243-5-5-5zm-3 5c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9V7zm9 13H6v-8h12v8zm-6-3.5c.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5-1.5.672-1.5 1.5.672 1.5 1.5 1.5z" />
+                                            </svg>
+                                        </span>
+                                    ) : (
+                                        <span className="required-star"> *</span>
+                                    )}
                                 </label>
 
                                 <select
                                     name="audit_status"
                                     value={formData.audit_status}
                                     onChange={handleChange}
-                                    required
+                                    required={!fixedFields}
+                                    disabled={!!fixedFields}
                                 >
                                     <option value="">Select Audit Status</option>
                                     <option value="2018-2019">2018-2019</option>
@@ -784,12 +812,21 @@ function FormInput({
     step,
     required = false,
     showError = false,
+    locked = false,
+    disabled = false,
 }) {
     return (
-        <div className={`input-group${showError ? " input-error" : ""}`}>
+        <div className={`input-group${showError ? " input-error" : ""}${locked ? " input-locked" : ""}`}>
             <label>
                 {label}
-                {required && <span className="required-star"> *</span>}
+                {locked && (
+                    <span className="lock-icon" title="This field is permanently locked">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M12 2C9.243 2 7 4.243 7 7v3H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2h-1V7c0-2.757-2.243-5-5-5zm-3 5c0-1.654 1.346-3 3-3s3 1.346 3 3v3H9V7zm9 13H6v-8h12v8zm-6-3.5c.828 0 1.5-.672 1.5-1.5s-.672-1.5-1.5-1.5-1.5.672-1.5 1.5.672 1.5 1.5 1.5z" />
+                        </svg>
+                    </span>
+                )}
+                {required && !locked && <span className="required-star"> *</span>}
             </label>
 
             <input
@@ -799,7 +836,8 @@ function FormInput({
                 onChange={onChange}
                 placeholder={placeholder}
                 step={step}
-                required={required}
+                required={required && !locked}
+                disabled={disabled || locked}
             />
 
             {showError && (

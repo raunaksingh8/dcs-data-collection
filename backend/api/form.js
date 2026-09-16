@@ -38,9 +38,25 @@ module.exports = (app) => {
 
                 const today = todayResult.rows[0].today;
 
+                // Check for fixed fields
+                const fixedFieldsResult = await pool.query(
+                    `SELECT 
+                        TO_CHAR(committee_formation_date, 'YYYY-MM-DD') AS committee_formation_date, 
+                        member, 
+                        monthly_target, 
+                        current_month_target, 
+                        audit_status 
+                     FROM public.dcs_fixed_form_fields 
+                     WHERE dcs_id = $1`,
+                    [req.user.dcs_id]
+                );
+
+                const fixedFields = fixedFieldsResult.rows.length > 0 ? fixedFieldsResult.rows[0] : null;
+
                 return res.status(200).json({
                     submitted: result.rows.length > 0,
                     date: today,
+                    fixedFields,
                 });
 
             } catch (err) {
@@ -96,6 +112,47 @@ module.exports = (app) => {
             } = req.body;
 
             try {
+                // Check if fixed fields exist
+                const fixedFieldsResult = await pool.query(
+                    `SELECT TO_CHAR(committee_formation_date, 'YYYY-MM-DD') AS committee_formation_date, member, monthly_target, current_month_target, audit_status 
+                     FROM public.dcs_fixed_form_fields 
+                     WHERE dcs_id = $1`, [req.user.dcs_id]
+                );
+
+                let finalFixedFields = {
+                    committee_formation_date: committee_formation_date || null,
+                    member: member !== undefined && member !== "" && member !== null ? parseInt(member, 10) : null,
+                    monthly_target: monthly_target || null,
+                    current_month_target: current_month_target || null,
+                    audit_status: audit_status && typeof audit_status === "string" && audit_status.trim() !== "" ? audit_status.trim() : null
+                };
+
+                if (fixedFieldsResult.rows.length > 0) {
+                    // Use existing fixed values for these 5 fields, ignoring the request payload
+                    const existingFixed = fixedFieldsResult.rows[0];
+                    finalFixedFields = {
+                        committee_formation_date: existingFixed.committee_formation_date,
+                        member: existingFixed.member,
+                        monthly_target: existingFixed.monthly_target,
+                        current_month_target: existingFixed.current_month_target,
+                        audit_status: existingFixed.audit_status
+                    };
+                } else {
+                    // Insert into dcs_fixed_form_fields since it's the first time
+                    await pool.query(
+                        `INSERT INTO public.dcs_fixed_form_fields (
+                            dcs_id, committee_formation_date, member, monthly_target, current_month_target, audit_status
+                        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+                        [
+                            req.user.dcs_id,
+                            finalFixedFields.committee_formation_date,
+                            finalFixedFields.member,
+                            finalFixedFields.monthly_target,
+                            finalFixedFields.current_month_target,
+                            finalFixedFields.audit_status
+                        ]
+                    );
+                }
 
                 const result = await pool.query(
                     `INSERT INTO public.form_submissions (
@@ -137,15 +194,15 @@ module.exports = (app) => {
                         req.user.union_id,
                         req.user.dcs_id,
 
-                        committee_formation_date || null,
+                        finalFixedFields.committee_formation_date,
                         total_active_members || null,
-                        member !== undefined && member !== "" && member !== null ? parseInt(member, 10) : null,
+                        finalFixedFields.member,
                         non_member !== undefined && non_member !== "" && non_member !== null ? parseInt(non_member, 10) : null,
                         achievement_15_days || null,
                         achievement_monthly || null,
 
-                        monthly_target || null,
-                        current_month_target || null,
+                        finalFixedFields.monthly_target,
+                        finalFixedFields.current_month_target,
                         week_1_achievement || null,
                         week_2_achievement || null,
                         week_3_achievement || null,
@@ -161,9 +218,7 @@ module.exports = (app) => {
                         payment_21_to_31 || null,
 
                         meeting_members_present || null,
-                        audit_status && typeof audit_status === "string" && audit_status.trim() !== ""
-                            ? audit_status.trim()
-                            : null,
+                        finalFixedFields.audit_status,
                     ]
                 );
 

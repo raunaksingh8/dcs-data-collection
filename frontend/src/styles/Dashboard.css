@@ -781,3 +781,28 @@
         padding: 11px 16px;
     }
 }
+
+/* ── Locked Fields ─────────────────────────────────────────────────── */
+
+.input-locked input,
+.input-locked select {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    box-shadow: none !important;
+}
+
+.input-locked label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+}
+
+.lock-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+}
