@@ -235,9 +235,9 @@
     box-shadow: 0 3px 12px rgba(15, 23, 42, 0.025);
 
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     gap: 14px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 
     animation: adminFadeIn 0.45s ease both;
 }
@@ -246,7 +246,8 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    min-width: 160px;
+    flex: 1;
+    min-width: 140px;
 }
 
 .admin-filter-group label {
@@ -284,7 +285,7 @@
 }
 
 .admin-search-group {
-    flex: 1;
+    flex: 2;
     min-width: 200px;
 }
 
@@ -311,7 +312,7 @@
     display: flex;
     gap: 8px;
     align-items: flex-end;
-    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .admin-export-btn {
@@ -619,6 +620,7 @@
     .admin-filters {
         flex-direction: column;
         align-items: stretch;
+        flex-wrap: wrap;
     }
 
     .admin-filter-group {
