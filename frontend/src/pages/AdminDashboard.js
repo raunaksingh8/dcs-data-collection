@@ -326,6 +326,7 @@ export default function AdminDashboard({ user, onLogout }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [exporting, setExporting] = useState(null); // "excel" | "pdf" | null
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const searchTimer = useRef(null);
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -442,7 +443,7 @@ export default function AdminDashboard({ user, onLogout }) {
 
     useEffect(() => {
         fetchSubmissions();
-    }, [fetchSubmissions]);
+    }, [fetchSubmissions, refreshKey]);
 
     // ── Fetch Summary ──
     const fetchSummary = useCallback(async () => {
@@ -486,7 +487,15 @@ export default function AdminDashboard({ user, onLogout }) {
 
     useEffect(() => {
         fetchSummary();
-    }, [fetchSummary]);
+    }, [fetchSummary, refreshKey]);
+
+    // ── 1-Hour Auto Refresh ──
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setRefreshKey((prev) => prev + 1);
+        }, 60 * 60 * 1000); // 1 hour
+        return () => clearInterval(interval);
+    }, []);
 
     // ── Filter handlers ──
     const handleUnionChange = (e) => {
@@ -864,8 +873,18 @@ export default function AdminDashboard({ user, onLogout }) {
                         </div>
                     </div>
 
-                    {/* Export */}
+                    {/* Actions */}
                     <div className="admin-filter-actions">
+                        <button
+                            className="admin-export-btn"
+                            onClick={() => setRefreshKey(prev => prev + 1)}
+                            disabled={loading || summaryLoading}
+                            style={{ backgroundColor: "#4f46e5", color: "white", marginRight: "10px" }}
+                        >
+                            {loading || summaryLoading ? "⏳" : "🔄"}{" "}
+                            Refresh
+                        </button>
+
                         <button
                             className="admin-export-btn excel-btn"
                             onClick={() => handleExport("excel")}

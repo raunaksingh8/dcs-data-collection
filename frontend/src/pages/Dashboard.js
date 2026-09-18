@@ -128,26 +128,6 @@ export default function Dashboard({ user, onLogout }) {
 
     useEffect(() => {
         checkTodayStatus();
-
-        // Periodic check every 60 seconds to detect midnight transition across IST calendar day
-        const interval = setInterval(() => {
-            checkTodayStatus();
-        }, 60000);
-
-        const handleFocusOrVisibility = () => {
-            if (document.visibilityState === "visible") {
-                checkTodayStatus();
-            }
-        };
-
-        window.addEventListener("focus", handleFocusOrVisibility);
-        document.addEventListener("visibilitychange", handleFocusOrVisibility);
-
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener("focus", handleFocusOrVisibility);
-            document.removeEventListener("visibilitychange", handleFocusOrVisibility);
-        };
     }, [checkTodayStatus]);
 
     const requiredFields = [
